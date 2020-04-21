@@ -6,11 +6,14 @@ ifdef linux
 tag = -n
 endif
 
-main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o BigQ.o DBFile.o Statistics.o y.tab.o lex.yy.o test.o
-	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o BigQ.o DBFile.o Statistics.o y.tab.o lex.yy.o test.o -lfl -lpthread
+main: Record.o Comparison.o ComparisonEngine.o Function.o Schema.o File.o Pipe.o BigQ.o DBFile.o Statistics.o y.tab.o lex.yy.o main.o
+	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Function.o Schema.o File.o Pipe.o BigQ.o DBFile.o Statistics.o y.tab.o lex.yy.o main.o -ll -lpthread
 
 a4-1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o BigQ.o DBFile.o Statistics.o y.tab.o lex.yy.o test.o
-	$(CC) -o a4-1.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o BigQ.o DBFile.o Statistics.o y.tab.o lex.yy.o test.o -lfl -lpthread
+	$(CC) -o a4-1.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o BigQ.o DBFile.o Statistics.o y.tab.o lex.yy.o test.o -ll -lpthread
+
+main.o: main.cc
+	$(CC) -g -c main.cc
 
 test.o: test.cc
 	$(CC) -g -c test.cc
@@ -23,6 +26,9 @@ Comparison.o: Comparison.cc
 
 ComparisonEngine.o: ComparisonEngine.cc
 	$(CC) -g -c ComparisonEngine.cc
+
+Function.o: Function.cc
+	$(CC) -g -c Function.cc
 
 DBFile.o: DBFile.cc
 	$(CC) -g -c DBFile.cc
@@ -44,7 +50,7 @@ BigQ.o: BigQ.cc
 
 y.tab.o: Parser.y
 	yacc -d Parser.y
-	sed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/"
+	gsed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/"
 	g++ -c y.tab.c
 
 lex.yy.o: Lexer.l

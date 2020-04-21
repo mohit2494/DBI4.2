@@ -1,8 +1,9 @@
-
+using namespace std;
 #ifndef SCHEMA_H
 #define SCHEMA_H
-
 #include <stdio.h>
+#include <vector>
+#include <string>
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
@@ -33,6 +34,8 @@ class Schema {
 
 public:
 
+    Schema();
+
 	// gets the set of attributes, but be careful with this, since it leads
 	// to aliasing!!!
 	Attribute *GetAtts ();
@@ -47,6 +50,10 @@ public:
 	// this finds the type of the given attribute
 	Type FindType (char *attName);
 
+    Schema (const Schema& s);
+    
+    Schema& operator= (const Schema& s);
+        
 	// this reads the specification for the schema in from a file
 	Schema (char *fName, char *relName);
 
@@ -57,6 +64,17 @@ public:
 	// place a lexicographic ordering on the records using this type of schema
 	int GetSortOrder (OrderMaker &order);
 
+    void Reset (string prefix);
+    
+    void Print ();
+    
+    void GroupBySchema (Schema s, bool returnInt);
+    
+    void ProjectSchema (Schema s, vector<string> names, vector<int> &attsToKeep);
+    
+    void JoinSchema (Schema left, Schema right);
+    
+    
 	~Schema ();
 
 };

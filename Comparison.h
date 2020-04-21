@@ -63,6 +63,9 @@ public:
 
 	// get number of attributes
 	int getNumAtts();
+    
+    void growFromParseTree(NameList* gAtts, Schema* inputSchema);
+
 
 };
 
