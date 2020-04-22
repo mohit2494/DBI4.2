@@ -136,13 +136,15 @@ public:
 		cout << "Input Pipe ID : " << from->pid << endl;
 		cout << "Output Pipe ID " << pid << endl;
 		cout << "Number Attrs Input : " << numIn << endl;
-		cout << "Number Attrs Output : " << numOut << endl;
 		cout << "Attrs To Keep :" << endl;
-		for (int i = 0; i < numOut; i++) {
-			
-			cout << attsToKeep[i] << endl;
-			
-		}
+        for (int i = 0; i < numOut; i++) {
+            
+            cout << attsToKeep[i] << endl;
+            
+        }
+        cout << "Number Attrs Output : " << numOut << endl;
+        cout << "Output Schema:" << endl;
+        sch.Print ();
 		cout << "*********************" << endl;
 		
 		from->Print ();
@@ -594,22 +596,22 @@ int main () {
 	
 	cout << "SQL>>" << endl;;
 	yyparse ();
-	
-	cout << endl << "Print Boolean :" << endl;
-	PrintParseTree (boolean);
-	
-	cout << endl << "Print TableList :" << endl;
-	PrintTablesAliases (tables);
-	
-	cout << endl << "Print NameList groupingAtts :" << endl;
-	PrintNameList (groupingAtts);
-	
-	cout << endl << "Print NameLis1t attsToSelect:" << endl;
-	PrintNameList (attsToSelect);
-	
-	cout << finalFunction << endl;
-	cout << endl << "Print Function:" << endl;
-	PrintFunction (finalFunction);
+//
+//	cout << endl << "Print Boolean :" << endl;
+//	PrintParseTree (boolean);
+//
+//	cout << endl << "Print TableList :" << endl;
+//	PrintTablesAliases (tables);
+//
+//	cout << endl << "Print NameList groupingAtts :" << endl;
+//	PrintNameList (groupingAtts);
+//
+//	cout << endl << "Print NameLis1t attsToSelect:" << endl;
+//	PrintNameList (attsToSelect);
+//
+//	cout << finalFunction << endl;
+//	cout << endl << "Print Function:" << endl;
+//	PrintFunction (finalFunction);
 	
 	cout << endl;
 	
@@ -664,7 +666,7 @@ int main () {
 //		cout << endl << cost << endl;
 //		cout << counter++ << endl << endl;
 		
-		if (cost >= 0 && cost < minCost) {
+		if (cost > 0 && cost < minCost) {
 			
 			minCost = cost;
 			joinOrder = tableNames;
@@ -679,6 +681,10 @@ int main () {
 		
 	} while (next_permutation (tableNames.begin (), tableNames.end ()));
 	
+    if (joinOrder.size()==0){
+        joinOrder = tableNames;
+    }
+
 //	cout << minCost << endl;
 	
 	QueryNode *root;
@@ -694,7 +700,6 @@ int main () {
 	selectFileNode->pid = getPid ();
 	selectFileNode->sch = Schema (schemaMap[aliaseMap[*iter]]);
 	selectFileNode->sch.Reset (*iter);
-	
 	selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->sch), selectFileNode->literal);
 	
 	iter++;
@@ -723,7 +728,7 @@ int main () {
 		
 		joinNode->right = selectFileNode;
 		joinNode->sch.JoinSchema (joinNode->left->sch, joinNode->right->sch);
-		joinNode->cnf.GrowFromParseTree (boolean, &(joinNode->left->sch), &(joinNode->right->sch), joinNode->literal);
+		joinNode->cnf.GrowFromParseTreeForJoin (boolean, &(joinNode->left->sch), &(joinNode->right->sch), joinNode->literal);
 		
 		iter++;
 		
@@ -748,7 +753,7 @@ int main () {
 			joinNode->right = selectFileNode;
 			
 			joinNode->sch.JoinSchema (joinNode->left->sch, joinNode->right->sch);
-			joinNode->cnf.GrowFromParseTree (boolean, &(joinNode->left->sch), &(joinNode->right->sch), joinNode->literal);
+			joinNode->cnf.GrowFromParseTreeForJoin (boolean, &(joinNode->left->sch), &(joinNode->right->sch), joinNode->literal);
 			
 			iter++;
 			
@@ -817,7 +822,6 @@ int main () {
 		((ProjectNode *) root)->from = temp;
 		
 	}
-	
 	cout << "Parse Tree : " << endl;
 	root->Print ();
 	

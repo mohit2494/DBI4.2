@@ -101,6 +101,10 @@ public:
     // specifically to the case where there are two relations involved
     void GrowFromParseTree (struct AndList *parseTree, Schema *leftSchema,
     Schema *rightSchema, Record &literal);
+    
+    void GrowFromParseTreeForJoin (struct AndList *parseTree, Schema *leftSchema,
+    Schema *rightSchema, Record &literal);
+
 
     // version of the same function, except that it is used in the case of
     // a relational selection over a single relation so only one schema is used

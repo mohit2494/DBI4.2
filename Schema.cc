@@ -41,7 +41,7 @@ Schema :: Schema () : fileName (NULL), numAtts (0), myAtts (NULL) {}
 
 
 Schema :: Schema (char *fpath, int num_atts, Attribute *atts) {
-	fileName = strdup (fpath);
+	fileName = fpath;
 	numAtts = num_atts;
 	myAtts = new Attribute[numAtts];
 	for (int i = 0; i < numAtts; i++ ) {

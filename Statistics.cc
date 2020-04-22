@@ -187,7 +187,7 @@ double Statistics::Estimate(struct AndList *tree, char **relationNames, int numT
     map<string,long> uniqueValueList;
     if(!checkParseTreeAndPartition(tree,relationNames,numToJoin,uniqueValueList))
     {
-        cout<<"\n invalid parameters passed";
+//        cout<<"\n invalid parameters passed";
         return -1.0;
     }
     else
