@@ -346,7 +346,7 @@ void QueryPlanner :: BuildExecutionTree(){
         selectFileNode->opened = true;
         selectFileNode->pid = getPid ();
         selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
-        selectFileNode->schema.Reset (*iter);
+        selectFileNode->schema.ResetSchema (*iter);
         selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
         iter++;
@@ -363,11 +363,11 @@ void QueryPlanner :: BuildExecutionTree(){
             selectFileNode->opened = true;
             selectFileNode->pid = getPid ();
             selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
-            selectFileNode->schema.Reset (*iter);
+            selectFileNode->schema.ResetSchema (*iter);
             selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
             joinNode->right = selectFileNode;
-            joinNode->schema.JoinSchema (joinNode->left->schema, joinNode->right->schema);
+            joinNode->schema.GetSchemaForJoin (joinNode->left->schema, joinNode->right->schema);
             joinNode->cnf.GrowFromParseTreeForJoin (boolean, &(joinNode->left->schema), &(joinNode->right->schema), joinNode->literal);
 
             iter++;
@@ -379,14 +379,14 @@ void QueryPlanner :: BuildExecutionTree(){
                 selectFileNode->opened = true;
                 selectFileNode->pid = getPid ();
                 selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
-                selectFileNode->schema.Reset (*iter);
+                selectFileNode->schema.ResetSchema (*iter);
                 selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
                 joinNode = new JoinOpNode ();
                 joinNode->pid = getPid ();
                 joinNode->left = p;
                 joinNode->right = selectFileNode;
-                joinNode->schema.JoinSchema (joinNode->left->schema, joinNode->right->schema);
+                joinNode->schema.GetSchemaForJoin (joinNode->left->schema, joinNode->right->schema);
                 joinNode->cnf.GrowFromParseTreeForJoin (boolean, &(joinNode->left->schema), &(joinNode->right->schema), joinNode->literal);
 
                 iter++;
@@ -415,7 +415,7 @@ void QueryPlanner :: BuildExecutionTree(){
             ((GroupByOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
             vector<string> atts;
             CopyNameList (groupingAtts, atts);
-            root->schema.GroupBySchema (temp->schema, ((GroupByOpNode *) root)->compute.ReturnInt (),atts);
+            root->schema.GetSchemaForGroup (temp->schema, ((GroupByOpNode *) root)->compute.ReturnInt (),atts);
             ((GroupByOpNode *) root)->group.growFromParseTree (groupingAtts, &(temp->schema));
             ((GroupByOpNode *) root)->from = temp;
 
@@ -443,7 +443,7 @@ void QueryPlanner :: BuildExecutionTree(){
             CopyNameList (attsToSelect, atts);
 
             root->pid = getPid ();
-            root->schema.ProjectSchema (temp->schema, atts, attsToKeep);
+            root->schema.GetSchemaForProject (temp->schema, atts, attsToKeep);
             ((ProjectOpNode *) root)->attsToKeep = &attsToKeep[0];
             ((ProjectOpNode *) root)->numIn = temp->schema.GetNumAtts ();
             ((ProjectOpNode *) root)->numOut = atts.size ();

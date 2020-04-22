@@ -64,15 +64,15 @@ public:
 	// place a lexicographic ordering on the records using this type of schema
 	int GetSortOrder (OrderMaker &order);
 
-    void Reset (string prefix);
+    void ResetSchema (string prefix);
     
     void Print ();
     
-    void GroupBySchema (Schema s, bool returnInt,vector<string> groupingAttsNames);
+    void GetSchemaForGroup (Schema s, bool returnInt,vector<string> groupingAttsNames);
     
-    void ProjectSchema (Schema s, vector<string> names, vector<int> &attsToKeep);
+    void GetSchemaForProject (Schema s, vector<string> names, vector<int> &attsToKeep);
     
-    void JoinSchema (Schema left, Schema right);
+    void GetSchemaForJoin (Schema left, Schema right);
     
     
 	~Schema ();

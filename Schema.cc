@@ -233,7 +233,7 @@ void Schema :: Print () {
     
 }
 
-void Schema :: Reset (string prefix) {
+void Schema :: ResetSchema (string prefix) {
     
     for (int i = 0; i < numAtts; i++) {
         
@@ -246,7 +246,7 @@ void Schema :: Reset (string prefix) {
     
 }
 
-void Schema :: GroupBySchema (Schema s, bool returnInt,vector<string> groupingAttsNames) {
+void Schema :: GetSchemaForGroup (Schema s, bool returnInt,vector<string> groupingAttsNames) {
     
     numAtts = groupingAttsNames.size() + 1;
     
@@ -277,7 +277,7 @@ void Schema :: GroupBySchema (Schema s, bool returnInt,vector<string> groupingAt
     
 }
 
-void Schema :: ProjectSchema (Schema s, vector<string> names, vector<int> &attsToKeep) {
+void Schema :: GetSchemaForProject (Schema s, vector<string> names, vector<int> &attsToKeep) {
     
     numAtts = names.size ();
     
@@ -299,7 +299,7 @@ void Schema :: ProjectSchema (Schema s, vector<string> names, vector<int> &attsT
     
 }
 
-void Schema :: JoinSchema (Schema left, Schema right) {
+void Schema :: GetSchemaForJoin (Schema left, Schema right) {
     
     numAtts = left.numAtts + right.numAtts;
     
