@@ -95,7 +95,7 @@ void QueryPlanner::Compile(){
     CopyTablesNamesAndAliases();
     Optimise();
     BuildExecutionTree();
-    
+
 }
 void QueryPlanner::Optimise(){
 
@@ -237,13 +237,12 @@ void QueryPlanner::InitStatistics(){
     s.AddAtt(lineitem, "l_comment", nlineitem);
 }
 void QueryPlanner::CopyTablesNamesAndAliases(){
-    while (tables)
-    {
-        s.CopyRel(tables->tableName, tables->aliasAs);
-        map[tables->aliasAs] = Schema("catalog", tables->tableName);
-        tableNames.push_back(tables->aliasAs);
-        tables = tables->next;
-    }
+    while (tables) {
+		s.CopyRel (tables->tableName, tables->aliasAs);
+		aliaseMap[tables->aliasAs] = tables->tableName;
+		tableNames.push_back (tables->aliasAs);
+		tables = tables->next;
+	}
 }
 void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
 
