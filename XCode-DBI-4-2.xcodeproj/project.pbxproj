@@ -89,6 +89,8 @@
 		F44F0AB8244FE294007D07D5 /* LexerFunc.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = LexerFunc.l; sourceTree = "<group>"; };
 		F44F0AB9244FE294007D07D5 /* Pipe.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Pipe.cc; sourceTree = "<group>"; };
 		F44F0ABA244FE294007D07D5 /* Schema.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Schema.cc; sourceTree = "<group>"; };
+		F44F0ACE24500181007D07D5 /* QueryTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueryTreeNode.h; sourceTree = "<group>"; };
+		F44F0ACF24500181007D07D5 /* QueryPlanner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueryPlanner.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +123,8 @@
 		F4E071A0244FE18100727DBB = {
 			isa = PBXGroup;
 			children = (
+				F44F0ACF24500181007D07D5 /* QueryPlanner.h */,
+				F44F0ACE24500181007D07D5 /* QueryTreeNode.h */,
 				F44F0A9E244FE293007D07D5 /* BigQ.cc */,
 				F44F0AA1244FE293007D07D5 /* BigQ.h */,
 				F44F0AA9244FE294007D07D5 /* catalog */,
