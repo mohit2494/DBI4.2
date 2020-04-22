@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:../BigQ.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../BigQ.h">
+   </FileRef>
+   <FileRef
+      location = "group:../catalog">
+   </FileRef>
+   <FileRef
+      location = "group:../Comparison.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../Comparison.h">
+   </FileRef>
+   <FileRef
+      location = "group:../ComparisonEngine.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../ComparisonEngine.h">
+   </FileRef>
+   <FileRef
+      location = "group:../DBFile.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../DBFile.h">
+   </FileRef>
+   <FileRef
+      location = "group:../Defs.h">
+   </FileRef>
+   <FileRef
+      location = "group:../File.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../File.h">
+   </FileRef>
+   <FileRef
+      location = "group:../Function.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../Function.h">
+   </FileRef>
+   <FileRef
+      location = "group:../Lexer.l">
+   </FileRef>
+   <FileRef
+      location = "group:../LexerFunc.l">
+   </FileRef>
+   <FileRef
+      location = "group:../main">
+   </FileRef>
+   <FileRef
+      location = "group:../main.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../Makefile">
+   </FileRef>
+   <FileRef
+      location = "group:../output41.txt">
+   </FileRef>
+   <FileRef
+      location = "group:../Parser">
+   </FileRef>
+   <FileRef
+      location = "group:../Parser.y">
+   </FileRef>
+   <FileRef
+      location = "group:../ParserFunc.y">
+   </FileRef>
+   <FileRef
+      location = "group:../ParseTree.h">
+   </FileRef>
+   <FileRef
+      location = "group:../Pipe.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../Pipe.h">
+   </FileRef>
+   <FileRef
+      location = "group:../README">
+   </FileRef>
+   <FileRef
+      location = "group:../Record.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../Record.h">
+   </FileRef>
+   <FileRef
+      location = "group:../RelOp.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../RelOp.h">
+   </FileRef>
+   <FileRef
+      location = "group:../RelStats.h">
+   </FileRef>
+   <FileRef
+      location = "group:../runTestCases.sh">
+   </FileRef>
+   <FileRef
+      location = "group:../Schema.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../Schema.h">
+   </FileRef>
+   <FileRef
+      location = "group:../Statistics.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../Statistics.h">
+   </FileRef>
+   <FileRef
+      location = "group:../Statistics.txt">
+   </FileRef>
+   <FileRef
+      location = "group:../test.cat">
+   </FileRef>
+   <FileRef
+      location = "group:../test.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../testcases">
+   </FileRef>
+   <FileRef
+      location = "group:../testCases42">
+   </FileRef>
+   <FileRef
+      location = "group:../TwoWayList.cc">
+   </FileRef>
+   <FileRef
+      location = "group:../TwoWayList.h">
+   </FileRef>
+   <FileRef
+      location = "group:../Utilities.h">
+   </FileRef>
+   <FileRef
+      location = "self:">
+   </FileRef>
+</Workspace>

@@ -25,6 +25,7 @@ class Record {
 
 friend class ComparisonEngine;
 friend class Page;
+friend class Comparison;
 
 private:
 	char* GetBits ();

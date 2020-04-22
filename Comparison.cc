@@ -62,6 +62,80 @@ void Comparison :: Print () {
 }
 
 
+void Comparison :: PrintWithSchema(Schema * leftSchema, Schema * rightSchema,Record * literal) {
+    Attribute * latts;
+    Attribute * ratts;
+    char *lit_bits;
+    char * litval;
+    if (leftSchema){
+         latts = leftSchema->GetAtts();
+    }
+    if(rightSchema){
+       ratts= rightSchema->GetAtts();
+    }
+    if(literal){
+        lit_bits= literal->GetBits();
+    }
+    
+
+    if (operand1 == Left)
+        cout<< latts[whichAtt1].name;
+    else if (operand1 == Right)
+        cout<< ratts[whichAtt1].name;
+    else
+    {
+        
+        if (attType == Int){
+             int *myInt = (int *) &(lit_bits[((int *) lit_bits)[whichAtt1 + 1]]);
+            cout<<*myInt;
+        }
+           
+        else if (attType == Double){
+            double *myDouble = (double *) &(lit_bits[((int *) lit_bits)[whichAtt1 + 1]]);
+            cout<<*myDouble;
+
+        }
+        else{
+            char *myString = (char *) &(lit_bits[((int *) lit_bits)[whichAtt1 + 1]]);
+            cout<<myString;
+        }
+    }
+
+
+    if (op == LessThan)
+        cout << " < ";
+    else if (op == GreaterThan)
+        cout << " > ";
+    else
+        cout << " = ";
+
+    
+    if (operand2 == Left)
+        cout<< latts[whichAtt2].name;
+    else if (operand2 == Right)
+        cout<< ratts[whichAtt2].name;
+    else
+    {
+        
+        if (attType == Int){
+             int *myInt = (int *) &(lit_bits[((int *) lit_bits)[whichAtt2 + 1]]);
+            cout<<*myInt;
+        }
+           
+        else if (attType == Double){
+            double *myDouble = (double *) &(lit_bits[((int *) lit_bits)[whichAtt2 + 1]]);
+            cout<<*myDouble;
+
+        }
+        else{
+            char *myString = (char *) &(lit_bits[((int *) lit_bits)[whichAtt2 + 1]]);
+            cout<<myString;
+        }
+    }
+
+}
+
+
 
 
 OrderMaker :: OrderMaker() {
@@ -207,6 +281,27 @@ void CNF :: Print () {
 			cout << "\n";
 	}
 }
+
+
+
+void CNF :: PrintWithSchema(Schema *leftSchema, Schema *rightSchema , Record *literal) {
+
+    for (int i = 0; i < numAnds; i++) {
+        
+        cout << "( ";
+        for (int j = 0; j < orLens[i]; j++) {
+            orList[i][j].PrintWithSchema(leftSchema, rightSchema, literal);
+            if (j < orLens[i] - 1)
+                cout << " OR ";
+        }
+        cout << ") ";
+        if (i < numAnds - 1)
+            cout << " AND\n";
+        else
+            cout << "\n";
+    }
+}
+
 
 // this is a helper routine that writes out another field for the literal record and its schema
 void AddLitToFile (int &numFieldsInLiteral, FILE *outRecFile, FILE *outSchemaFile, char *value, Type myType) {

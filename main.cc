@@ -93,7 +93,8 @@ public:
 	}
 	
 	void Print () {
-		
+        left->Print ();
+        right->Print ();
 		cout << "*********************" << endl;
 		cout << "Join Operation" << endl;
 		cout << "Input Pipe 1 ID : " << left->pid << endl;
@@ -102,11 +103,8 @@ public:
 		cout << "Output Schema : " << endl;
 		sch.Print ();
 		cout << "Join CNF : " << endl;
-		cnf.Print ();
+        cnf.PrintWithSchema(&left->sch,&right->sch,&literal);
 		cout << "*********************" << endl;
-		
-		left->Print ();
-		right->Print ();
 		
 	}
 	
@@ -130,7 +128,7 @@ public:
 	}
 	
 	void Print () {
-		
+        from->Print ();
 		cout << "*********************" << endl;
 		cout << "Project Operation" << endl;
 		cout << "Input Pipe ID : " << from->pid << endl;
@@ -147,7 +145,6 @@ public:
         sch.Print ();
 		cout << "*********************" << endl;
 		
-		from->Print ();
 		
 	}
 	
@@ -182,7 +179,7 @@ public:
 		cout << "Output Schema:" << endl;
 		sch.Print ();
 		cout << "Select CNF:" << endl;
-		cnf.Print ();
+		cnf.PrintWithSchema(&sch,&sch,&literal);
 		cout << "*********************" << endl;
 		
 	}
@@ -205,7 +202,7 @@ public:
 	}
 	
 	void Print () {
-		
+        from->Print ();
 		cout << "*********************" << endl;
 		cout << "Select Pipe Operation" << endl;
 		cout << "Input Pipe ID : " << from->pid << endl;
@@ -213,11 +210,9 @@ public:
 		cout << "Output Schema:" << endl;
 		sch.Print ();
 		cout << "Select CNF:" << endl;
-		cnf.Print ();
+        cnf.PrintWithSchema(&sch,&sch,&literal);
 		cout << "*********************" << endl;
-		
-		from->Print ();
-		
+            
 	}
 	
 };
@@ -238,6 +233,7 @@ public:
 	
 	void Print () {
 		
+        from->Print ();
 		cout << "*********************" << endl;
 		cout << "Sum Operation" << endl;
 		cout << "Input Pipe ID : " << from->pid << endl;
@@ -245,9 +241,7 @@ public:
 		cout << "Function :" << endl;
 		compute.Print ();
 		cout << "*********************" << endl;
-		
-		from->Print ();
-		
+				
 	}
 	
 };
@@ -266,15 +260,13 @@ public:
 	}
 	
 	void Print () {
-		
+        from->Print ();
 		cout << "*********************" << endl;
 		cout << "Duplication Elimation Operation" << endl;
 		cout << "Input Pipe ID : " << from->pid << endl;
 		cout << "Output Pipe ID : " << pid << endl;
 		cout << "*********************" << endl;
-		
-		from->Print ();
-		
+        
 	}
 	
 };
@@ -297,6 +289,7 @@ public:
 	
 	void Print () {
 		
+        from->Print ();
 		cout << "*********************" << endl;
 		cout << "Group By Operation" << endl;
 		cout << "Input Pipe ID : " << from->pid << endl;
@@ -308,9 +301,7 @@ public:
 		cout << "OrderMaker : " << endl;
 		group.Print ();
 		cout << "*********************" << endl;
-		
-		from->Print ();
-		
+            
 	}
 	
 };
@@ -332,13 +323,12 @@ public:
 	
 	void Print () {
 		
+        from->Print ();
 		cout << "*********************" << endl;
 		cout << "Write Out Operation" << endl;
 		cout << "Input Pipe ID : " << from->pid << endl;
 		cout << "*********************" << endl;
-		
-		from->Print ();
-		
+				
 	}
 	
 };

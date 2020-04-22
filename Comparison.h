@@ -7,13 +7,14 @@
 #include "Comparison.h"
 #include "ComparisonEngine.h"
 
+class Schema;
+class Record;
 
 // This stores an individual comparison that is part of a CNF
 class Comparison {
 
 	friend class ComparisonEngine;
 	friend class CNF;
-
 	Target operand1;
 	int whichAtt1;
 	Target operand2;
@@ -32,10 +33,11 @@ public:
 
 	// print to the screen
 	void Print ();
+    
+    // print with schema
+    void PrintWithSchema(Schema * leftSchema ,Schema * rightSchema, Record *literal );
 };
 
-
-class Schema;
 
 // This structure encapsulates a sort order for records
 class  OrderMaker {
@@ -69,8 +71,6 @@ public:
 
 };
 
-class Record;
-
 // This structure stores a CNF expression that is to be evaluated
 // during query execution
 
@@ -95,6 +95,10 @@ public:
 
 	// print the comparison structure to the screen
 	void Print ();
+    
+    // print with schema
+    void PrintWithSchema( Schema *leftSchema, Schema *rightSchema,Record *literal );
+
 
     // this takes a parse tree for a CNF and converts it into a 2-D
     // matrix storing the same CNF expression.  This function is applicable
