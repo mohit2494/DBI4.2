@@ -75,7 +75,6 @@
 		F44F0AAA244FE294007D07D5 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		F44F0AAB244FE294007D07D5 /* Pipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Pipe.h; sourceTree = "<group>"; };
 		F44F0AAC244FE294007D07D5 /* File.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = File.h; sourceTree = "<group>"; };
-		F44F0AAD244FE294007D07D5 /* main */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = main; sourceTree = "<group>"; };
 		F44F0AAE244FE294007D07D5 /* Function.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Function.cc; sourceTree = "<group>"; };
 		F44F0AAF244FE294007D07D5 /* testcases */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testcases; sourceTree = "<group>"; };
 		F44F0AB0244FE294007D07D5 /* testCases42 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = testCases42; sourceTree = "<group>"; };
@@ -91,6 +90,7 @@
 		F44F0ABA244FE294007D07D5 /* Schema.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Schema.cc; sourceTree = "<group>"; };
 		F44F0ACE24500181007D07D5 /* QueryTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueryTreeNode.h; sourceTree = "<group>"; };
 		F44F0ACF24500181007D07D5 /* QueryPlanner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueryPlanner.h; sourceTree = "<group>"; };
+		F44F0AD02450AC78007D07D5 /* main */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = main; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -141,9 +141,9 @@
 				F44F0AB2244FE294007D07D5 /* Function.h */,
 				F44F0AB5244FE294007D07D5 /* Lexer.l */,
 				F44F0AB8244FE294007D07D5 /* LexerFunc.l */,
-				F44F0AAD244FE294007D07D5 /* main */,
 				F44F0AB4244FE294007D07D5 /* main.cc */,
 				F44F0AAA244FE294007D07D5 /* Makefile */,
+				F44F0AD02450AC78007D07D5 /* main */,
 				F44F0AB3244FE294007D07D5 /* output41.txt */,
 				F44F0A8F244FE293007D07D5 /* Parser */,
 				F44F0A90244FE293007D07D5 /* Parser.y */,
@@ -180,11 +180,12 @@
 /* Begin PBXLegacyTarget section */
 		F4E071A5244FE18100727DBB /* XCode-DBI-4-2 */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = "$(ACTION)";
+			buildArgumentsString = main;
 			buildConfigurationList = F4E071A8244FE18100727DBB /* Build configuration list for PBXLegacyTarget "XCode-DBI-4-2" */;
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "";
 			dependencies = (
 			);
 			name = "XCode-DBI-4-2";

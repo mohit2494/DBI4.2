@@ -68,7 +68,7 @@ public:
     
     void Print ();
     
-    void GroupBySchema (Schema s, bool returnInt);
+    void GroupBySchema (Schema s, bool returnInt,vector<string> groupingAttsNames);
     
     void ProjectSchema (Schema s, vector<string> names, vector<int> &attsToKeep);
     

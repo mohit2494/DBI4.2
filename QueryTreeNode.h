@@ -38,7 +38,7 @@ public:
     void PrintNode () {
         left->PrintNode ();
         right->PrintNode ();
-        cout << "<------------ Join Op ------------>" << endl;
+        cout << "------------ Join Op ------------" << endl;
         cout << " Left Input Pipe ID : " << left->pid << endl;
         cout << " Right Input Pipe ID : " << right->pid << endl;
         cout << " Output Pipe ID : " << pid << endl;
@@ -46,7 +46,7 @@ public:
         schema.Print ();
         cout << " Join CNF : " << endl;
         cnf.PrintWithSchema(&left->schema,&right->schema,&literal);
-        cout << "<----------------XX---------------->" << endl;
+        cout << "----------------XX----------------" << endl;
 
     }
 
@@ -72,7 +72,7 @@ public:
     void PrintNode () {
         from->PrintNode ();
         
-        cout << "<------------ Project Op ------------>" << endl;
+        cout << "------------ Project Op ------------" << endl;
         cout << " Input Pipe ID : " << from->pid << endl;
         cout << " Output Pipe ID " << pid << endl;
         cout << " Number Attrs Input : " << numIn << endl;
@@ -82,10 +82,10 @@ public:
 
         }
         cout<< "]"<< endl;
-        cout << "Number Attrs Output : " << numOut << endl;
-        cout << "Output Schema:" << endl;
+        cout << " Number Attrs Output : " << numOut << endl;
+        cout << " Output Schema:" << endl;
         schema.Print ();
-        cout << "<----------------XX---------------->" << endl;
+        cout << "----------------XX----------------" << endl;
 
 
     }
@@ -115,14 +115,14 @@ public:
 
     void PrintNode () {
 
-        cout << "<----------- Select File Op ---------->" << endl;
-        cout << "Select File Operation" << endl;
-        cout << "Output Pipe ID " << pid << endl;
-        cout << "Output Schema:" << endl;
+        cout << "----------- Select File Op ----------" << endl;
+        cout << " Select File Operation" << endl;
+        cout << " Output Pipe ID " << pid << endl;
+        cout << " Output Schema:" << endl;
         schema.Print ();
-        cout << "Select CNF:" << endl;
+        cout << " Select CNF:" << endl;
         cnf.PrintWithSchema(&schema,&schema,&literal);
-        cout << "<-----------------XX---------------->" << endl;
+        cout << "-----------------XX----------------" << endl;
 
     }
 
@@ -145,15 +145,14 @@ public:
 
     void PrintNode () {
         from->PrintNode ();
-        cout << "*********************" << endl;
-        cout << "Select Pipe Operation" << endl;
-        cout << "Input Pipe ID : " << from->pid << endl;
-        cout << "Output Pipe ID : " << pid << endl;
-        cout << "Output Schema:" << endl;
+        cout << "----------- Select Pipe Op ----------" << endl;
+        cout << " Input Pipe ID : " << from->pid << endl;
+        cout << " Output Pipe ID : " << pid << endl;
+        cout << " Output Schema:" << endl;
         schema.Print ();
-        cout << "Select CNF:" << endl;
+        cout << " Select CNF:" << endl;
         cnf.PrintWithSchema(&schema,&schema,&literal);
-        cout << "*********************" << endl;
+        cout << "-----------------XX----------------" << endl;
 
     }
 
@@ -176,13 +175,14 @@ public:
     void PrintNode () {
 
         from->PrintNode ();
-        cout << "*********************" << endl;
-        cout << "Sum Operation" << endl;
-        cout << "Input Pipe ID : " << from->pid << endl;
-        cout << "Output Pipe ID : " << pid << endl;
-        cout << "Function :" << endl;
-        compute.Print ();
-        cout << "*********************" << endl;
+        cout << "----------- Sum Pipe Op ----------" << endl;
+        cout << " Input Pipe ID : " << from->pid << endl;
+        cout << " Output Pipe ID : " << pid << endl;
+        cout << " Function :" << endl;
+        compute.Print (&from->schema);
+        cout << " Output Schema:" << endl;
+        schema.Print ();
+        cout << "-----------------XX----------------" << endl;
 
     }
 
@@ -203,11 +203,12 @@ public:
 
     void PrintNode () {
         from->PrintNode ();
-        cout << "*********************" << endl;
-        cout << "Duplication Elimation Operation" << endl;
-        cout << "Input Pipe ID : " << from->pid << endl;
-        cout << "Output Pipe ID : " << pid << endl;
-        cout << "*********************" << endl;
+        cout << "----------- Duplication Elimation Op ----------" << endl;
+        cout << " Input Pipe ID : " << from->pid << endl;
+        cout << " Output Pipe ID : " << pid << endl;
+        cout << " Output Schema:" << endl;
+        schema.Print ();
+        cout << "-----------------XX----------------" << endl;
 
     }
 
@@ -221,7 +222,7 @@ public:
 
     Function compute;
     OrderMaker group;
-
+    bool distinctFunc;
     GroupByOpNode () : RelOpNode (GB) {}
     ~GroupByOpNode () {
 
@@ -232,17 +233,16 @@ public:
     void PrintNode () {
 
         from->PrintNode ();
-        cout << "*********************" << endl;
-        cout << "Group By Operation" << endl;
-        cout << "Input Pipe ID : " << from->pid << endl;
-        cout << "Output Pipe ID : " << pid << endl;
-        cout << "Output Schema : " << endl;
+        cout << "----------- Group By Op ----------" << endl;
+        cout << " Input Pipe ID : " << from->pid << endl;
+        cout << " Output Pipe ID : " << pid << endl;
+        cout << " Output Schema : " << endl;
         schema.Print ();
-        cout << "Function : " << endl;
-        compute.Print ();
-        cout << "OrderMaker : " << endl;
+        cout << " Function : " << endl;
+        compute.Print (&from->schema);
+        cout << " OrderMaker : " << endl;
         group.Print ();
-        cout << "*********************" << endl;
+        cout << "-----------------XX----------------" << endl;
 
     }
 
@@ -266,10 +266,9 @@ public:
     void PrintNode () {
 
         from->PrintNode ();
-        cout << "*********************" << endl;
-        cout << "Write Out Operation" << endl;
-        cout << "Input Pipe ID : " << from->pid << endl;
-        cout << "*********************" << endl;
+        cout << "----------- Write Out Op ----------" << endl;
+        cout << " Input Pipe ID : " << from->pid << endl;
+        cout << "-----------------XX----------------" << endl;
 
     }
 

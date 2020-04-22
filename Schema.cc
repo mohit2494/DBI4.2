@@ -201,7 +201,6 @@ Schema& Schema::operator= (const Schema& s) {
 
 
 void Schema :: Print () {
-    
     string typeName;
     
     for (int i = 0; i < numAtts; i++) {
@@ -225,9 +224,12 @@ void Schema :: Print () {
             
         }
         
-        cout << myAtts[i].name << " : " <<  typeName << endl;
+        
+        cout <<" "<<myAtts[i].name << " - " <<  typeName << " " <<endl;
+
         
     }
+
     
 }
 
@@ -244,9 +246,9 @@ void Schema :: Reset (string prefix) {
     
 }
 
-void Schema :: GroupBySchema (Schema s, bool returnInt) {
+void Schema :: GroupBySchema (Schema s, bool returnInt,vector<string> groupingAttsNames) {
     
-    numAtts = s.GetNumAtts () + 1;
+    numAtts = groupingAttsNames.size() + 1;
     
     if (myAtts) {
         
@@ -268,10 +270,9 @@ void Schema :: GroupBySchema (Schema s, bool returnInt) {
         
     }
     
-    for (int i = 0; i < s.numAtts; i++) {
-        
-        myAtts[i + 1] = s.myAtts[i];
-        
+    for (int i = 0; i < groupingAttsNames.size(); i++) {
+           myAtts[i+1] = s.myAtts[s.Find (strdup (groupingAttsNames[i].c_str ()))];
+           
     }
     
 }

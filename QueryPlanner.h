@@ -70,14 +70,14 @@ public:
     RelOpNode *root;
     
     QueryPlanner();
-    void initSchemaMap ();
-    void initStatistics ();
-    void PrintParseTree(struct AndList *andPointer);
-    void PrintTablesAliases (TableList * tableList)    ;
-    void CopyTablesNamesAndAliases ()    ;
-    void PrintNameList(NameList *nameList) ;
+    void PopulateSchemaMap ();
+    void PopulateStatistics ();
+//    void PrintParseTree(struct AndList *andPointer);
+//    void PrintTablesAliases (TableList * tableList)    ;
+    void PopulateAliasMapAndCopyStatistics ()    ;
+//    void PrintNameList(NameList *nameList) ;
     void CopyNameList(NameList *nameList, vector<string> &names) ;
-    void PrintFunction (FuncOperator *func) ;
+//    void PrintFunction (FuncOperator *func) ;
     void Compile();
     void Optimise();
     void BuildExecutionTree();
@@ -86,11 +86,11 @@ public:
     
 };
  QueryPlanner::QueryPlanner(): buffer (2){
-    initSchemaMap ();
-    initStatistics ();
+    PopulateSchemaMap ();
+    PopulateStatistics ();
 };
 
-void QueryPlanner ::initSchemaMap () {
+void QueryPlanner ::PopulateSchemaMap () {
 
     map[string(region)] = Schema ("catalog", region);
     map[string(part)] = Schema ("catalog", part);
@@ -103,7 +103,7 @@ void QueryPlanner ::initSchemaMap () {
 
 }
 
-void QueryPlanner::initStatistics () {
+void QueryPlanner::PopulateStatistics () {
 
     s.AddRel (region, nregion);
     s.AddRel (nation, nnation);
@@ -192,65 +192,65 @@ void QueryPlanner::initStatistics () {
     s.AddAtt (lineitem, "l_comment", nlineitem);
 
 }
-
-void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
-
-    cout << "(";
-
-    while (andPointer) {
-        struct OrList *orPointer = andPointer->left;
-        while (orPointer) {
-            struct ComparisonOp *comPointer = orPointer->left;
-            if (comPointer!=NULL) {
-                struct Operand *pOperand = comPointer->left;
-                if(pOperand!=NULL) {
-                    cout<<pOperand->value<<"";
-                }
-
-                switch(comPointer->code) {
-                    case LESS_THAN:
-                        cout<<" < "; break;
-                    case GREATER_THAN:
-                        cout<<" > "; break;
-                    case EQUALS:
-                        cout<<" = "; break;
-                    default:
-                        cout << " unknown code " << comPointer->code;
-                }
-
-                pOperand = comPointer->right;
-
-                if(pOperand!=NULL) {
-                    cout<<pOperand->value<<"";
-                }
-            }
-
-            if(orPointer->rightOr) {
-                cout<<" OR ";
-            }
-
-            orPointer = orPointer->rightOr;
-        }
-
-        if(andPointer->rightAnd) {
-            cout<<") AND (";
-        }
-
-        andPointer = andPointer->rightAnd;
-    }
-
-    cout << ")" << endl;
-}
-void QueryPlanner::PrintTablesAliases (TableList * tableList)    {
-
-    while (tableList) {
-        cout << "Table " << tableList->tableName;
-        cout <<    " is aliased to " << tableList->aliasAs << endl;
-        tableList = tableList->next;
-    }
-
-}
-void QueryPlanner::CopyTablesNamesAndAliases(){
+//
+//void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
+//
+//    cout << "(";
+//
+//    while (andPointer) {
+//        struct OrList *orPointer = andPointer->left;
+//        while (orPointer) {
+//            struct ComparisonOp *comPointer = orPointer->left;
+//            if (comPointer!=NULL) {
+//                struct Operand *pOperand = comPointer->left;
+//                if(pOperand!=NULL) {
+//                    cout<<pOperand->value<<"";
+//                }
+//
+//                switch(comPointer->code) {
+//                    case LESS_THAN:
+//                        cout<<" < "; break;
+//                    case GREATER_THAN:
+//                        cout<<" > "; break;
+//                    case EQUALS:
+//                        cout<<" = "; break;
+//                    default:
+//                        cout << " unknown code " << comPointer->code;
+//                }
+//
+//                pOperand = comPointer->right;
+//
+//                if(pOperand!=NULL) {
+//                    cout<<pOperand->value<<"";
+//                }
+//            }
+//
+//            if(orPointer->rightOr) {
+//                cout<<" OR ";
+//            }
+//
+//            orPointer = orPointer->rightOr;
+//        }
+//
+//        if(andPointer->rightAnd) {
+//            cout<<") AND (";
+//        }
+//
+//        andPointer = andPointer->rightAnd;
+//    }
+//
+//    cout << ")" << endl;
+//}
+//void QueryPlanner::PrintTablesAliases (TableList * tableList)    {
+//
+//    while (tableList) {
+//        cout << "Table " << tableList->tableName;
+//        cout <<    " is aliased to " << tableList->aliasAs << endl;
+//        tableList = tableList->next;
+//    }
+//
+//}
+void QueryPlanner::PopulateAliasMapAndCopyStatistics(){
     while (tables) {
         s.CopyRel (tables->tableName, tables->aliasAs);
         aliaseMap[tables->aliasAs] = tables->tableName;
@@ -259,13 +259,13 @@ void QueryPlanner::CopyTablesNamesAndAliases(){
     }
 }
 
-void QueryPlanner ::PrintNameList(NameList *nameList) {
-    while (nameList) {
-        cout << nameList->name << endl;
-        nameList = nameList->next;
-    }
-
-}
+//void QueryPlanner ::PrintNameList(NameList *nameList) {
+//    while (nameList) {
+//        cout << nameList->name << endl;
+//        nameList = nameList->next;
+//    }
+//
+//}
 
 void QueryPlanner ::CopyNameList(NameList *nameList, vector<string> &names) {
     while (nameList) {
@@ -273,39 +273,38 @@ void QueryPlanner ::CopyNameList(NameList *nameList, vector<string> &names) {
         nameList = nameList->next;
     }
 }
-
-void QueryPlanner ::PrintFunction (FuncOperator *func) {
-    if (func) {
-        cout << "(";
-        PrintFunction (func->leftOperator);
-        cout << func->leftOperand->value << " ";
-        if (func->code) {
-            cout << " " << func->code << " ";
-        }
-        PrintFunction (func->right);
-        cout << ")";
-    }
-}
+//
+//void QueryPlanner ::PrintFunction (FuncOperator *func) {
+//    if (func) {
+//        cout << "(";
+//        PrintFunction (func->leftOperator);
+//        cout << func->leftOperand->value << " ";
+//        if (func->code) {
+//            cout << " " << func->code << " ";
+//        }
+//        PrintFunction (func->right);
+//        cout << ")";
+//    }
+//}
 
 void QueryPlanner::Compile(){
     cout << "SQL>>" << endl;;
     yyparse ();
-    CopyTablesNamesAndAliases();
+    PopulateAliasMapAndCopyStatistics();
     Optimise();
     BuildExecutionTree();
 
 }
 
 void QueryPlanner::Optimise(){
+    
+    sort (tableNames.begin (), tableNames.end ());
 
-        sort (tableNames.begin (), tableNames.end ());
+    int min_join_cost = INT_MAX;
+    int curr_join_cost = 0;
 
-        int minCost = INT_MAX, cost = 0;
-        int counter = 1;
+    do {
 
-        do {
-
-            Statistics temp (s);
             auto iter = tableNames.begin ();
             buffer[0] = *iter;
             iter++;
@@ -313,29 +312,29 @@ void QueryPlanner::Optimise(){
             while (iter != tableNames.end ()) {
 
                 buffer[1] = *iter;
-                cost += temp.Estimate (boolean, &buffer[0], 2);
-                temp.Apply (boolean, &buffer[0], 2);
+                curr_join_cost += s.Estimate (boolean, &buffer[0], 2);
+                s.Apply (boolean, &buffer[0], 2);
 
-                if (cost <= 0 || cost > minCost) {
+                if (curr_join_cost <= 0 || curr_join_cost > min_join_cost) {
                     break;
                 }
 
                 iter++;
             }
 
-            if (cost > 0 && cost < minCost) {
+            if (curr_join_cost > 0 && curr_join_cost < min_join_cost) {
 
-                minCost = cost;
+                min_join_cost = curr_join_cost;
                 joinOrder = tableNames;
 
             }
-            cost = 0;
+            curr_join_cost = 0;
 
-        } while (next_permutation (tableNames.begin (), tableNames.end ()));
+    } while (next_permutation (tableNames.begin (), tableNames.end ()));
 
-        if (joinOrder.size()==0){
-            joinOrder = tableNames;
-        }
+    if (joinOrder.size()==0){
+        joinOrder = tableNames;
+    }
 }
 
 void QueryPlanner :: BuildExecutionTree(){
@@ -414,8 +413,10 @@ void QueryPlanner :: BuildExecutionTree(){
 
             root->pid = getPid ();
             ((GroupByOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
-            root->schema.GroupBySchema (temp->schema, ((GroupByOpNode *) root)->compute.ReturnInt ());
-            ((GroupByOpNode *) root)->group.growFromParseTree (groupingAtts, &(root->schema));
+            vector<string> atts;
+            CopyNameList (groupingAtts, atts);
+            root->schema.GroupBySchema (temp->schema, ((GroupByOpNode *) root)->compute.ReturnInt (),atts);
+            ((GroupByOpNode *) root)->group.growFromParseTree (groupingAtts, &(temp->schema));
             ((GroupByOpNode *) root)->from = temp;
 
         } 
@@ -432,9 +433,7 @@ void QueryPlanner :: BuildExecutionTree(){
 
             ((SumOpNode *) root)->from = temp;
         }
-        temp= root;
-        
-        if (attsToSelect) 
+        else if (attsToSelect)
         {
 
             root = new ProjectOpNode ();

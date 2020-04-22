@@ -288,7 +288,7 @@ void CNF :: PrintWithSchema(Schema *leftSchema, Schema *rightSchema , Record *li
 
     for (int i = 0; i < numAnds; i++) {
         
-        cout << "( ";
+        cout << " ( ";
         for (int j = 0; j < orLens[i]; j++) {
             orList[i][j].PrintWithSchema(leftSchema, rightSchema, literal);
             if (j < orLens[i] - 1)
