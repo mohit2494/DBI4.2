@@ -50,9 +50,7 @@ const int nsupplier = 10000;
 
 static int pidBuffer = 0;
 int getPid () {
-
     return ++pidBuffer;
-
 }
 
 
@@ -61,7 +59,7 @@ typedef map<string, string> AliaseMap;
 
 class QueryPlanner{
 public:
-    vector<char *> tableNames;
+    vector<char *> tables;
     vector<char *> joinOrder;
     vector<char *> buffer;
     AliaseMap aliaseMap;
@@ -79,7 +77,7 @@ public:
     void CopyNameList(NameList *nameList, vector<string> &names) ;
     void PrintFunction (FuncOperator *func) ;
     void Compile();
-    void Optimise();
+    void OptimiseJoin();
     void BuildExecutionTree();
     void Print();
 
@@ -254,7 +252,7 @@ void QueryPlanner::CopyTablesNamesAndAliases(){
     while (tables) {
         s.CopyRel (tables->tableName, tables->aliasAs);
         aliaseMap[tables->aliasAs] = tables->tableName;
-        tableNames.push_back (tables->aliasAs);
+        tables.push_back (tables->aliasAs);
         tables = tables->next;
     }
 }
@@ -291,14 +289,14 @@ void QueryPlanner::Compile(){
     cout << "SQL>>" << endl;;
     yyparse ();
     CopyTablesNamesAndAliases();
-    Optimise();
+    OptimiseJoin();
     BuildExecutionTree();
 
 }
 
-void QueryPlanner::Optimise(){
+void QueryPlanner::OptimiseJoin(){
 
-        sort (tableNames.begin (), tableNames.end ());
+        sort (tables.begin (), tables.end ());
 
         int minCost = INT_MAX, cost = 0;
         int counter = 1;
@@ -310,7 +308,7 @@ void QueryPlanner::Optimise(){
             buffer[0] = *iter;
             iter++;
 
-            while (iter != tableNames.end ()) {
+        while (iter != tables.end ()) {
 
                 buffer[1] = *iter;
                 cost += temp.Estimate (boolean, &buffer[0], 2);
@@ -325,16 +323,15 @@ void QueryPlanner::Optimise(){
 
             if (cost > 0 && cost < minCost) {
 
-                minCost = cost;
-                joinOrder = tableNames;
+        }
+       
+        cost = 0;
 
             }
             cost = 0;
 
-        } while (next_permutation (tableNames.begin (), tableNames.end ()));
-
         if (joinOrder.size()==0){
-            joinOrder = tableNames;
+          joinOrder = tables;
         }
 }
 
