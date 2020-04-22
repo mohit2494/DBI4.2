@@ -198,25 +198,16 @@ void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
     cout << "(";
 
     while (andPointer) {
-
         struct OrList *orPointer = andPointer->left;
-
         while (orPointer) {
-
             struct ComparisonOp *comPointer = orPointer->left;
-
             if (comPointer!=NULL) {
-
                 struct Operand *pOperand = comPointer->left;
-
                 if(pOperand!=NULL) {
-
                     cout<<pOperand->value<<"";
-
                 }
 
                 switch(comPointer->code) {
-
                     case LESS_THAN:
                         cout<<" < "; break;
                     case GREATER_THAN:
@@ -225,49 +216,37 @@ void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
                         cout<<" = "; break;
                     default:
                         cout << " unknown code " << comPointer->code;
-
                 }
 
                 pOperand = comPointer->right;
 
                 if(pOperand!=NULL) {
-
                     cout<<pOperand->value<<"";
                 }
-
             }
 
             if(orPointer->rightOr) {
-
                 cout<<" OR ";
-
             }
 
             orPointer = orPointer->rightOr;
-
         }
 
         if(andPointer->rightAnd) {
-
             cout<<") AND (";
         }
 
         andPointer = andPointer->rightAnd;
-
     }
 
     cout << ")" << endl;
-
 }
 void QueryPlanner::PrintTablesAliases (TableList * tableList)    {
 
     while (tableList) {
-
         cout << "Table " << tableList->tableName;
         cout <<    " is aliased to " << tableList->aliasAs << endl;
-
         tableList = tableList->next;
-
     }
 
 }
@@ -281,50 +260,31 @@ void QueryPlanner::CopyTablesNamesAndAliases(){
 }
 
 void QueryPlanner ::PrintNameList(NameList *nameList) {
-
     while (nameList) {
-
         cout << nameList->name << endl;
-
         nameList = nameList->next;
-
     }
 
 }
 
 void QueryPlanner ::CopyNameList(NameList *nameList, vector<string> &names) {
-
     while (nameList) {
-
         names.push_back (string (nameList->name));
-
         nameList = nameList->next;
-
     }
-
 }
 
 void QueryPlanner ::PrintFunction (FuncOperator *func) {
-
     if (func) {
-
         cout << "(";
-
         PrintFunction (func->leftOperator);
-
         cout << func->leftOperand->value << " ";
         if (func->code) {
-
             cout << " " << func->code << " ";
-
         }
-
         PrintFunction (func->right);
-
         cout << ")";
-
     }
-
 }
 
 void QueryPlanner::Compile(){
@@ -346,33 +306,22 @@ void QueryPlanner::Optimise(){
         do {
 
             Statistics temp (s);
-
             auto iter = tableNames.begin ();
             buffer[0] = *iter;
-
-    //        cout << *iter << " ";
             iter++;
 
             while (iter != tableNames.end ()) {
 
-    //            cout << *iter << " ";
                 buffer[1] = *iter;
-
                 cost += temp.Estimate (boolean, &buffer[0], 2);
                 temp.Apply (boolean, &buffer[0], 2);
 
                 if (cost <= 0 || cost > minCost) {
-
                     break;
-
                 }
 
                 iter++;
-
             }
-
-    //        cout << endl << cost << endl;
-    //        cout << counter++ << endl << endl;
 
             if (cost > 0 && cost < minCost) {
 
@@ -380,11 +329,6 @@ void QueryPlanner::Optimise(){
                 joinOrder = tableNames;
 
             }
-    /*
-            char fileName[10];
-            sprintf (fileName, "t%d.txt", counter - 1);
-            temp.Write (fileName);
-    */
             cost = 0;
 
         } while (next_permutation (tableNames.begin (), tableNames.end ()));
@@ -392,20 +336,14 @@ void QueryPlanner::Optimise(){
         if (joinOrder.size()==0){
             joinOrder = tableNames;
         }
-
-
 }
 
 void QueryPlanner :: BuildExecutionTree(){
-    //    cout << minCost << endl;
 
         auto iter = joinOrder.begin ();
         SelectFileOpNode *selectFileNode = new SelectFileOpNode ();
 
         char filepath[50];
-    //    sprintf (filepath, "bin/%s.bin",aliaseMap[*iter]);
-
-    //    selectFileNode->file.Open (filepath);
         selectFileNode->opened = true;
         selectFileNode->pid = getPid ();
         selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
@@ -414,25 +352,18 @@ void QueryPlanner :: BuildExecutionTree(){
 
         iter++;
         if (iter == joinOrder.end ()) {
-
             root = selectFileNode;
-
-        } else {
+        } 
+        else {
 
             JoinOpNode *joinNode = new JoinOpNode ();
-
             joinNode->pid = getPid ();
             joinNode->left = selectFileNode;
 
             selectFileNode = new SelectFileOpNode ();
-
-    //        sprintf (filepath, "bin\\%s.bin", aliaseMap[*iter]);
-
-    //        selectFileNode->file.Open (filepath);
             selectFileNode->opened = true;
             selectFileNode->pid = getPid ();
             selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
-
             selectFileNode->schema.Reset (*iter);
             selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
@@ -445,11 +376,7 @@ void QueryPlanner :: BuildExecutionTree(){
             while (iter != joinOrder.end ()) {
 
                 JoinOpNode *p = joinNode;
-
                 selectFileNode = new SelectFileOpNode ();
-
-    //            sprintf (filepath, "bin/%s.bin", (aliaseMap[*iter]));
-    //            selectFileNode->file.Open (filepath);
                 selectFileNode->opened = true;
                 selectFileNode->pid = getPid ();
                 selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
@@ -457,36 +384,27 @@ void QueryPlanner :: BuildExecutionTree(){
                 selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
                 joinNode = new JoinOpNode ();
-
                 joinNode->pid = getPid ();
                 joinNode->left = p;
                 joinNode->right = selectFileNode;
-
                 joinNode->schema.JoinSchema (joinNode->left->schema, joinNode->right->schema);
                 joinNode->cnf.GrowFromParseTreeForJoin (boolean, &(joinNode->left->schema), &(joinNode->right->schema), joinNode->literal);
 
                 iter++;
-
             }
-
             root = joinNode;
-
         }
 
         RelOpNode *temp = root;
 
-        if (groupingAtts) {
-
+        if (groupingAtts) 
+        {
             if (distinctFunc) {
-
                 root = new DistinctOpNode ();
-
                 root->pid = getPid ();
                 root->schema = temp->schema;
                 ((DistinctOpNode *) root)->from = temp;
-
                 temp = root;
-
             }
 
             root = new GroupByOpNode ();
@@ -498,10 +416,11 @@ void QueryPlanner :: BuildExecutionTree(){
             ((GroupByOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
             root->schema.GroupBySchema (temp->schema, ((GroupByOpNode *) root)->compute.ReturnInt ());
             ((GroupByOpNode *) root)->group.growFromParseTree (groupingAtts, &(root->schema));
-
             ((GroupByOpNode *) root)->from = temp;
 
-        } else if (finalFunction) {
+        } 
+        else if (finalFunction) 
+        {
 
             root = new SumOpNode ();
 
@@ -512,10 +431,11 @@ void QueryPlanner :: BuildExecutionTree(){
             root->schema = Schema (NULL, 1, ((SumOpNode *) root)->compute.ReturnInt () ? atts[0] : atts[1]);
 
             ((SumOpNode *) root)->from = temp;
-
         }
         temp= root;
-        if (attsToSelect) {
+        
+        if (attsToSelect) 
+        {
 
             root = new ProjectOpNode ();
 
@@ -535,7 +455,6 @@ void QueryPlanner :: BuildExecutionTree(){
 }
 
 void QueryPlanner:: Print(){
-
     cout << "Parse Tree : " << endl;
     root->PrintNode();
 }
