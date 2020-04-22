@@ -1,297 +1,277 @@
-#ifndef QUERY_TREE_NODE_H
-#define QUERY_TREE_NODE_H
-
-#include "Schema.h"
-#include "DBFile.h"
-#include "Function.h"
-#include <iostream>
-
-
-enum NodeType {
-	G, SF, SP, P, D, S, GB, J, W
+#ifndef QUERYTREENODE_H
+#define QUERYTREENODE_H
+enum RelOpType {
+    G, SF, SP, P, D, S, GB, J, W
 };
 
-class QueryNode {
+class RelOpNode {
 
 public:
-	
-	int pid;  // Pipe ID
-	
-	NodeType t;
-	Schema sch;  // Ouput Schema
-	
-	QueryNode ();
-	QueryNode (NodeType type) : t (type) {}
-	
-	~QueryNode () {}
-	virtual void Print () {};
-	
+
+    int pid;
+    RelOpType t;
+    Schema schema;
+    RelOpNode ();
+    RelOpNode (RelOpType type) : t (type) {}
+    ~RelOpNode () {}
+    virtual void PrintNode () {};
+
 };
 
-class JoinNode : public QueryNode {
+class JoinOpNode : public RelOpNode {
 
 public:
-	
-	QueryNode *left;
-	QueryNode *right;
-	CNF cnf;
-	Record literal;
-	
-	JoinNode () : QueryNode (J) {}
-	~JoinNode () {
-		
-		if (left) delete left;
-		if (right) delete right;
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Join Operation" << endl;
-		cout << "Input Pipe 1 ID : " << left->pid << endl;
-		cout << "Input Pipe 2 ID : " << right->pid << endl;
-		cout << "Output Pipe ID : " << pid << endl;
-		cout << "Output Schema : " << endl;
-		sch.Print ();
-		cout << "Join CNF : " << endl;
-		cnf.Print ();
-		cout << "*********************" << endl;
-		
-		left->Print ();
-		right->Print ();
-		
-	}
-	
+
+    RelOpNode *left;
+    RelOpNode *right;
+    CNF cnf;
+    Record literal;
+
+    JoinOpNode () : RelOpNode (J) {}
+    ~JoinOpNode () {
+
+        if (left) delete left;
+        if (right) delete right;
+
+    }
+
+    void PrintNode () {
+        left->PrintNode ();
+        right->PrintNode ();
+        cout << "<------------ Join Op ------------>" << endl;
+        cout << " Left Input Pipe ID : " << left->pid << endl;
+        cout << " Right Input Pipe ID : " << right->pid << endl;
+        cout << " Output Pipe ID : " << pid << endl;
+        cout << " Output Schema : " << endl;
+        schema.Print ();
+        cout << " Join CNF : " << endl;
+        cnf.PrintWithSchema(&left->schema,&right->schema,&literal);
+        cout << "<----------------XX---------------->" << endl;
+
+    }
+
 };
 
-class ProjectNode : public QueryNode {
+class ProjectOpNode : public RelOpNode {
 
 public:
-	
-	int numIn;
-	int numOut;
-	int *attsToKeep;
-	
-	QueryNode *from;
-	
-	ProjectNode () : QueryNode (P) {}
-	~ProjectNode () {
-		
-		if (attsToKeep) delete[] attsToKeep;
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Project Operation" << endl;
-		cout << "Input Pipe ID : " << from->pid << endl;
-		cout << "Output Pipe ID " << pid << endl;
-		cout << "Number Attrs Input : " << numIn << endl;
-		cout << "Number Attrs Output : " << numOut << endl;
-		cout << "Attrs To Keep :" << endl;
-		for (int i = 0; i < numOut; i++) {
-			
-			cout << attsToKeep[i] << endl;
-			
-		}
-		cout << "*********************" << endl;
-		
-		from->Print ();
-		
-	}
-	
+
+    int numIn;
+    int numOut;
+    int *attsToKeep;
+
+    RelOpNode *from;
+
+    ProjectOpNode () : RelOpNode (P) {}
+    ~ProjectOpNode () {
+
+        if (attsToKeep) delete[] attsToKeep;
+
+    }
+
+    void PrintNode () {
+        from->PrintNode ();
+        
+        cout << "<------------ Project Op ------------>" << endl;
+        cout << " Input Pipe ID : " << from->pid << endl;
+        cout << " Output Pipe ID " << pid << endl;
+        cout << " Number Attrs Input : " << numIn << endl;
+        cout << " Attrs To Keep : [";
+        for (int i = 0; i < numOut; i++) {
+            cout << attsToKeep[i] <<" ";
+
+        }
+        cout<< "]"<< endl;
+        cout << "Number Attrs Output : " << numOut << endl;
+        cout << "Output Schema:" << endl;
+        schema.Print ();
+        cout << "<----------------XX---------------->" << endl;
+
+
+    }
+
 };
 
-class SelectFileNode : public QueryNode {
+class SelectFileOpNode : public RelOpNode {
 
 public:
-	
-	bool opened;
-	
-	CNF cnf;
-	DBFile file;
-	Record literal;
-	
-	SelectFileNode () : QueryNode (SF) {}
-	~SelectFileNode () {
-		
-		if (opened) {
-			
-			file.Close ();
-			
-		}
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Select File Operation" << endl;
-		cout << "Output Pipe ID " << pid << endl;
-		cout << "Output Schema:" << endl;
-		sch.Print ();
-		cout << "Select CNF:" << endl;
-		cnf.Print ();
-		cout << "*********************" << endl;
-		
-	}
-	
+
+    bool opened;
+
+    CNF cnf;
+    DBFile file;
+    Record literal;
+
+    SelectFileOpNode () : RelOpNode (SF) {}
+    ~SelectFileOpNode () {
+
+        if (opened) {
+
+            file.Close ();
+
+        }
+
+    }
+
+    void PrintNode () {
+
+        cout << "<----------- Select File Op ---------->" << endl;
+        cout << "Select File Operation" << endl;
+        cout << "Output Pipe ID " << pid << endl;
+        cout << "Output Schema:" << endl;
+        schema.Print ();
+        cout << "Select CNF:" << endl;
+        cnf.PrintWithSchema(&schema,&schema,&literal);
+        cout << "<-----------------XX---------------->" << endl;
+
+    }
+
 };
 
-class SelectPipeNode : public QueryNode {
+class SelectPipeOpNode : public RelOpNode {
 
 public:
-	
-	CNF cnf;
-	Record literal;
-	QueryNode *from;
-	
-	SelectPipeNode () : QueryNode (SP) {}
-	~SelectPipeNode () {
-		
-		if (from) delete from;
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Select Pipe Operation" << endl;
-		cout << "Input Pipe ID : " << from->pid << endl;
-		cout << "Output Pipe ID : " << pid << endl;
-		cout << "Output Schema:" << endl;
-		sch.Print ();
-		cout << "Select CNF:" << endl;
-		cnf.Print ();
-		cout << "*********************" << endl;
-		
-		from->Print ();
-		
-	}
-	
+
+    CNF cnf;
+    Record literal;
+    RelOpNode *from;
+
+    SelectPipeOpNode () : RelOpNode (SP) {}
+    ~SelectPipeOpNode () {
+
+        if (from) delete from;
+
+    }
+
+    void PrintNode () {
+        from->PrintNode ();
+        cout << "*********************" << endl;
+        cout << "Select Pipe Operation" << endl;
+        cout << "Input Pipe ID : " << from->pid << endl;
+        cout << "Output Pipe ID : " << pid << endl;
+        cout << "Output Schema:" << endl;
+        schema.Print ();
+        cout << "Select CNF:" << endl;
+        cnf.PrintWithSchema(&schema,&schema,&literal);
+        cout << "*********************" << endl;
+
+    }
+
 };
 
-class SumNode : public QueryNode {
+class SumOpNode : public RelOpNode {
 
 public:
-	
-	Function compute;
-	QueryNode *from;
-	
-	SumNode () : QueryNode (S) {}
-	~SumNode () {
-		
-		if (from) delete from;
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Sum Operation" << endl;
-		cout << "Input Pipe ID : " << from->pid << endl;
-		cout << "Output Pipe ID : " << pid << endl;
-		cout << "Function :" << endl;
-		compute.Print ();
-		cout << "*********************" << endl;
-		
-		from->Print ();
-		
-	}
-	
+
+    Function compute;
+    RelOpNode *from;
+
+    SumOpNode () : RelOpNode (S) {}
+    ~SumOpNode () {
+
+        if (from) delete from;
+
+    }
+
+    void PrintNode () {
+
+        from->PrintNode ();
+        cout << "*********************" << endl;
+        cout << "Sum Operation" << endl;
+        cout << "Input Pipe ID : " << from->pid << endl;
+        cout << "Output Pipe ID : " << pid << endl;
+        cout << "Function :" << endl;
+        compute.Print ();
+        cout << "*********************" << endl;
+
+    }
+
 };
 
-class DistinctNode : public QueryNode {
+class DistinctOpNode : public RelOpNode {
 
 public:
-	
-	QueryNode *from;
-	
-	DistinctNode () : QueryNode (D) {}
-	~DistinctNode () {
-		
-		if (from) delete from;
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Duplication Elimation Operation" << endl;
-		cout << "Input Pipe ID : " << from->pid << endl;
-		cout << "Output Pipe ID : " << pid << endl;
-		cout << "*********************" << endl;
-		
-		from->Print ();
-		
-	}
-	
+
+    RelOpNode *from;
+
+    DistinctOpNode () : RelOpNode (D) {}
+    ~DistinctOpNode () {
+
+        if (from) delete from;
+
+    }
+
+    void PrintNode () {
+        from->PrintNode ();
+        cout << "*********************" << endl;
+        cout << "Duplication Elimation Operation" << endl;
+        cout << "Input Pipe ID : " << from->pid << endl;
+        cout << "Output Pipe ID : " << pid << endl;
+        cout << "*********************" << endl;
+
+    }
+
 };
 
-class GroupByNode : public QueryNode {
+class GroupByOpNode : public RelOpNode {
 
 public:
-	
-	QueryNode *from;
-	
-	Function compute;
-	OrderMaker group;
-	
-	GroupByNode () : QueryNode (GB) {}
-	~GroupByNode () {
-		
-		if (from) delete from;
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Group By Operation" << endl;
-		cout << "Input Pipe ID : " << from->pid << endl;
-		cout << "Output Pipe ID : " << pid << endl;
-		cout << "Output Schema : " << endl;
-		sch.Print ();
-		cout << "Function : " << endl;
-		compute.Print ();
-		cout << "OrderMaker : " << endl;
-		group.Print ();
-		cout << "*********************" << endl;
-		
-		from->Print ();
-		
-	}
-	
+
+    RelOpNode *from;
+
+    Function compute;
+    OrderMaker group;
+
+    GroupByOpNode () : RelOpNode (GB) {}
+    ~GroupByOpNode () {
+
+        if (from) delete from;
+
+    }
+
+    void PrintNode () {
+
+        from->PrintNode ();
+        cout << "*********************" << endl;
+        cout << "Group By Operation" << endl;
+        cout << "Input Pipe ID : " << from->pid << endl;
+        cout << "Output Pipe ID : " << pid << endl;
+        cout << "Output Schema : " << endl;
+        schema.Print ();
+        cout << "Function : " << endl;
+        compute.Print ();
+        cout << "OrderMaker : " << endl;
+        group.Print ();
+        cout << "*********************" << endl;
+
+    }
+
 };
 
-class WriteOutNode : public QueryNode {
+class WriteOutOpNode : public RelOpNode {
 
 public:
-	
-	QueryNode *from;
-	
-	FILE *output;
-	
-	WriteOutNode () : QueryNode (W) {}
-	~WriteOutNode () {
-		
-		if (from) delete from;
-		
-	}
-	
-	void Print () {
-		
-		cout << "*********************" << endl;
-		cout << "Write Out Operation" << endl;
-		cout << "Input Pipe ID : " << from->pid << endl;
-		cout << "*********************" << endl;
-		
-		from->Print ();
-		
-	}
-	
-};
 
+    RelOpNode *from;
+
+    FILE *output;
+
+    WriteOutOpNode () : RelOpNode (W) {}
+    ~WriteOutOpNode () {
+
+        if (from) delete from;
+
+    }
+
+    void PrintNode () {
+
+        from->PrintNode ();
+        cout << "*********************" << endl;
+        cout << "Write Out Operation" << endl;
+        cout << "Input Pipe ID : " << from->pid << endl;
+        cout << "*********************" << endl;
+
+    }
+
+};
 #endif
