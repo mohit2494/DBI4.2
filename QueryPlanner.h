@@ -22,13 +22,13 @@ extern "C" {
 
 using namespace std;
 
-extern struct FuncOperator *finalFunction; // the aggregate function (NULL if no agg)
-extern struct TableList *tables; // the list of tables and aliases in the query
-extern struct AndList *boolean; // the predicate in the WHERE clause
-extern struct NameList *groupingAtts; // grouping atts (NULL if no grouping)
-extern struct NameList *attsToSelect; // the set of attributes in the SELECT (NULL if no such atts)
-extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
-extern int distinctFunc;  // 1 if there is a DISTINCT in an aggregate query
+extern struct FuncOperator *finalFunction;  // the aggregate function (NULL if no agg)
+extern struct TableList *tables;            // the list of tables and aliases in the query
+extern struct AndList *boolean;             // the predicate in the WHERE clause
+extern struct NameList *groupingAtts;       // grouping atts (NULL if no grouping)
+extern struct NameList *attsToSelect;       // the set of attributes in the SELECT (NULL if no such atts)
+extern int distinctAtts;                    // 1 if there is a DISTINCT in a non-aggregate query
+extern int distinctFunc;                    // 1 if there is a DISTINCT in an aggregate query
 
 char *supplier = "supplier";
 char *partsupp = "partsupp";
@@ -50,11 +50,8 @@ const int nsupplier = 10000;
 
 static int pidBuffer = 0;
 int getPid () {
-
     return ++pidBuffer;
-
 }
-
 
 typedef map<string, Schema> SchemaMap;
 typedef map<string, string> AliaseMap;
@@ -64,7 +61,7 @@ public:
     vector<char *> tableNames;
     vector<char *> joinOrder;
     vector<char *> buffer;
-    AliaseMap aliaseMap;
+    AliaseMap aliasMap;
     SchemaMap map;
     Statistics s;
     RelOpNode *root;
@@ -82,14 +79,19 @@ public:
     void Optimise();
     void BuildExecutionTree();
     void Print();
-
-    
 };
+
+QueryPlanner::QueryPlanner(): buffer (2){
+    initSchemaMap ();
+    initStatistics ();
+    cout << "SQL>>" << endl;;
+    yyparse ();
  QueryPlanner::QueryPlanner(): buffer (2){
     PopulateSchemaMap ();
     PopulateStatistics ();
 };
 
+void QueryPlanner ::initSchemaMap () {
 void QueryPlanner ::PopulateSchemaMap () {
 
     map[string(region)] = Schema ("catalog", region);
@@ -100,7 +102,6 @@ void QueryPlanner ::PopulateSchemaMap () {
     map[string(supplier)] = Schema ("catalog", supplier);
     map[string(lineitem)] = Schema ("catalog", lineitem);
     map[string(orders)] = Schema ("catalog", orders);
-
 }
 
 void QueryPlanner::PopulateStatistics () {
@@ -253,7 +254,7 @@ void QueryPlanner::PopulateStatistics () {
 void QueryPlanner::PopulateAliasMapAndCopyStatistics(){
     while (tables) {
         s.CopyRel (tables->tableName, tables->aliasAs);
-        aliaseMap[tables->aliasAs] = tables->tableName;
+        aliasMap[tables->aliasAs] = tables->tableName;
         tableNames.push_back (tables->aliasAs);
         tables = tables->next;
     }
@@ -293,7 +294,6 @@ void QueryPlanner::Compile(){
     PopulateAliasMapAndCopyStatistics();
     Optimise();
     BuildExecutionTree();
-
 }
 
 void QueryPlanner::Optimise(){
@@ -422,15 +422,11 @@ void QueryPlanner :: BuildExecutionTree(){
         } 
         else if (finalFunction) 
         {
-
             root = new SumOpNode ();
-
             root->pid = getPid ();
             ((SumOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
-
             Attribute atts[2][1] = {{{"sum", Int}}, {{"sum", Double}}};
             root->schema = Schema (NULL, 1, ((SumOpNode *) root)->compute.ReturnInt () ? atts[0] : atts[1]);
-
             ((SumOpNode *) root)->from = temp;
         }
         else if (attsToSelect)

@@ -6,5 +6,4 @@ int main () {
     qp.Compile();
     qp.Print();
 	return 0;
-
 }

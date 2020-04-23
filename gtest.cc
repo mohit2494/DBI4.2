@@ -2,26 +2,35 @@
 #include <fstream>
 #include "DBFile.h"
 #include "Statistics.h"
+#include "QueryPlanner.h"
 #include <gtest/gtest.h>
 
-extern "C" struct YY_BUFFER_STATE *yy_scan_string(const char*);
 extern "C" int yyparse(void);
-extern struct AndList *final;
 
-class FilePath{
-    public:
-    const std::string dbfile_dir = "dbfiles/"; 
-    const std::string tpch_dir ="/home/mk/Documents/uf docs/sem 2/Database Implementation/git/tpch-dbgen/"; 
-    const std::string catalog_path = "catalog";
-};
+QueryPlanner qp;
 
-
-TEST(QueryTesting, estimate) {
-   
+TEST(QueryTesting, CheckQueryAlias) {
+    qp.CopyTablesNamesAndAliases();
+    std::map<std::string, string> tables = {
+		{"p","part"},
+		{"ps","partsupp"},
+        {"s","supplier"}
+    };
+    auto tableIterator = tables.cbegin();
+    for(auto it = qp.aliasMap.cbegin(); it != qp.aliasMap.cend(); ++it)
+    {
+        ASSERT_STREQ(tableIterator->first.c_str(), it->first.c_str());
+        ASSERT_STREQ(tableIterator->second.c_str(), it->second.c_str());
+        ++tableIterator;
+    }
 }
 
-TEST(QueryTesting, apply) {
-   
+TEST(QueryTesting, TestJoinOptimization) {
+    qp.Optimise();
+    vector<char *> assertion = {"p","ps","s"};
+    for (int i=0; i<qp.joinOrder.size();i++) {
+        ASSERT_STREQ(assertion.at(i), qp.joinOrder.at(i));
+    }
 }
 
 int main(int argc, char **argv) {
