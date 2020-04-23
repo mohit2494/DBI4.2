@@ -10,7 +10,7 @@ extern "C" int yyparse(void);
 QueryPlanner qp;
 
 TEST(QueryTesting, CheckQueryAlias) {
-    qp.CopyTablesNamesAndAliases();
+    qp.PopulateAliasMapAndCopyStatistics();
     std::map<std::string, string> tables = {
 		{"p","part"},
 		{"ps","partsupp"},

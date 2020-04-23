@@ -22,13 +22,13 @@ extern "C" {
 
 using namespace std;
 
-extern struct FuncOperator *finalFunction;  // the aggregate function (NULL if no agg)
-extern struct TableList *tables;            // the list of tables and aliases in the query
-extern struct AndList *boolean;             // the predicate in the WHERE clause
-extern struct NameList *groupingAtts;       // grouping atts (NULL if no grouping)
-extern struct NameList *attsToSelect;       // the set of attributes in the SELECT (NULL if no such atts)
-extern int distinctAtts;                    // 1 if there is a DISTINCT in a non-aggregate query
-extern int distinctFunc;                    // 1 if there is a DISTINCT in an aggregate query
+extern struct FuncOperator *finalFunction; // the aggregate function (NULL if no agg)
+extern struct TableList *tables; // the list of tables and aliases in the query
+extern struct AndList *boolean; // the predicate in the WHERE clause
+extern struct NameList *groupingAtts; // grouping atts (NULL if no grouping)
+extern struct NameList *attsToSelect; // the set of attributes in the SELECT (NULL if no such atts)
+extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
+extern int distinctFunc;  // 1 if there is a DISTINCT in an aggregate query
 
 char *supplier = "supplier";
 char *partsupp = "partsupp";
@@ -53,8 +53,10 @@ int getPid () {
     return ++pidBuffer;
 }
 
+
 typedef map<string, Schema> SchemaMap;
 typedef map<string, string> AliaseMap;
+typedef map<string, AndList> booleanMap;
 
 class QueryPlanner{
 public:
@@ -69,29 +71,27 @@ public:
     QueryPlanner();
     void PopulateSchemaMap ();
     void PopulateStatistics ();
-//    void PrintParseTree(struct AndList *andPointer);
-//    void PrintTablesAliases (TableList * tableList)    ;
-    void PopulateAliasMapAndCopyStatistics ()    ;
-//    void PrintNameList(NameList *nameList) ;
+    void PopulateAliasMapAndCopyStatistics ();
     void CopyNameList(NameList *nameList, vector<string> &names) ;
-//    void PrintFunction (FuncOperator *func) ;
     void Compile();
     void Optimise();
     void BuildExecutionTree();
     void Print();
-};
+    booleanMap GetMapFromBoolean(AndList *boolean);
+    //    void PrintFunction (FuncOperator *func);
+    //    void PrintNameList(NameList *nameList);
+    //    void PrintParseTree(struct AndList *andPointer);
+    //    void PrintTablesAliases (TableList * tableList);
 
-QueryPlanner::QueryPlanner(): buffer (2){
-    initSchemaMap ();
-    initStatistics ();
-    cout << "SQL>>" << endl;;
-    yyparse ();
+    
+};
  QueryPlanner::QueryPlanner(): buffer (2){
     PopulateSchemaMap ();
     PopulateStatistics ();
+    cout << "SQL>>" << endl;;
+    yyparse ();
 };
 
-void QueryPlanner ::initSchemaMap () {
 void QueryPlanner ::PopulateSchemaMap () {
 
     map[string(region)] = Schema ("catalog", region);
@@ -102,6 +102,7 @@ void QueryPlanner ::PopulateSchemaMap () {
     map[string(supplier)] = Schema ("catalog", supplier);
     map[string(lineitem)] = Schema ("catalog", lineitem);
     map[string(orders)] = Schema ("catalog", orders);
+
 }
 
 void QueryPlanner::PopulateStatistics () {
@@ -289,31 +290,46 @@ void QueryPlanner ::CopyNameList(NameList *nameList, vector<string> &names) {
 //}
 
 void QueryPlanner::Compile(){
-    cout << "SQL>>" << endl;;
-    yyparse ();
     PopulateAliasMapAndCopyStatistics();
     Optimise();
     BuildExecutionTree();
 }
 
 void QueryPlanner::Optimise(){
-    
     sort (tableNames.begin (), tableNames.end ());
 
-    int min_join_cost = INT_MAX;
-    int curr_join_cost = 0;
+    double min_join_cost = (double)INT_MAX;
+    double curr_join_cost = 0;
+    booleanMap b = GetMapFromBoolean(boolean);
 
     do {
+            // code for printing tables
+            for (int i=0; i<tableNames.size(); i++) {
+                cout << tableNames.at(i)<<",";
+            }
+            cout << endl;
 
+            Statistics temp (s);
             auto iter = tableNames.begin ();
             buffer[0] = *iter;
             iter++;
 
             while (iter != tableNames.end ()) {
-
+                
                 buffer[1] = *iter;
-                curr_join_cost += s.Estimate (boolean, &buffer[0], 2);
-                s.Apply (boolean, &buffer[0], 2);
+                string key = string(buffer[0])+","+string(buffer[1]);
+                
+                // check if this combination is in booleanMap
+                if (b.find(key) == b.end()) {
+                    break;
+                }
+                
+                curr_join_cost += temp.Estimate (&b[key], &buffer[0], 2);
+               
+            
+                cout << "current join cost " << curr_join_cost << endl;
+
+                temp.Apply (&b[key], &buffer[0], 2);
 
                 if (curr_join_cost <= 0 || curr_join_cost > min_join_cost) {
                     break;
@@ -345,7 +361,7 @@ void QueryPlanner :: BuildExecutionTree(){
         char filepath[50];
         selectFileNode->opened = true;
         selectFileNode->pid = getPid ();
-        selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
+        selectFileNode->schema = Schema (map[aliasMap[*iter]]);
         selectFileNode->schema.ResetSchema (*iter);
         selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
@@ -362,7 +378,7 @@ void QueryPlanner :: BuildExecutionTree(){
             selectFileNode = new SelectFileOpNode ();
             selectFileNode->opened = true;
             selectFileNode->pid = getPid ();
-            selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
+            selectFileNode->schema = Schema (map[aliasMap[*iter]]);
             selectFileNode->schema.ResetSchema (*iter);
             selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
@@ -378,7 +394,7 @@ void QueryPlanner :: BuildExecutionTree(){
                 selectFileNode = new SelectFileOpNode ();
                 selectFileNode->opened = true;
                 selectFileNode->pid = getPid ();
-                selectFileNode->schema = Schema (map[aliaseMap[*iter]]);
+                selectFileNode->schema = Schema (map[aliasMap[*iter]]);
                 selectFileNode->schema.ResetSchema (*iter);
                 selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
@@ -422,11 +438,15 @@ void QueryPlanner :: BuildExecutionTree(){
         } 
         else if (finalFunction) 
         {
+
             root = new SumOpNode ();
+
             root->pid = getPid ();
             ((SumOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
+
             Attribute atts[2][1] = {{{"sum", Int}}, {{"sum", Double}}};
             root->schema = Schema (NULL, 1, ((SumOpNode *) root)->compute.ReturnInt () ? atts[0] : atts[1]);
+
             ((SumOpNode *) root)->from = temp;
         }
         else if (attsToSelect)
@@ -447,6 +467,101 @@ void QueryPlanner :: BuildExecutionTree(){
             ((ProjectOpNode *) root)->from = temp;
 
         }
+}
+
+booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
+    booleanMap b;
+    string delimiter = ".";
+
+    // now we go through and build the comparison structure
+    for (int whichAnd = 0; 1; whichAnd++, parseTree = parseTree->rightAnd) {
+        
+        // see if we have run off of the end of all of the ANDs
+        if (parseTree == NULL) {
+            // done
+            break;
+        }
+
+        // we have not, so copy over all of the ORs hanging off of this AND
+        struct OrList *myOr = parseTree->left;
+        for (int whichOr = 0; 1; whichOr++, myOr = myOr->rightOr) {
+
+            // see if we have run off of the end of the ORs
+            if (myOr == NULL) {
+                // done with parsing
+                break;
+            }
+
+            // we have not run off the list, so add the current OR in!
+            
+            // these store the types of the two values that are found
+            Type typeLeft;
+            Type typeRight;
+
+            // first thing is to deal with the left operand
+            // so we check to see if it is an attribute name, and if so,
+            // we look it up in the schema
+            if (myOr->left->left->code == NAME) {
+                if (myOr->left->right->code == NAME) 
+                {
+                    cout<<"( "<<myOr->left->left->value<<" ,"<< myOr->left->right->value<<")"<<endl;
+                    
+                    string key;
+
+                    // left table string
+                    string lts = myOr->left->left->value;
+                    string pushlts = lts.substr(0, lts.find(delimiter));
+
+                    // right table string
+                    string rts = myOr->left->right->value;
+                    string pushrts = rts.substr(0, rts.find(delimiter));
+                    
+                    key=pushlts+","+pushrts;
+
+                    // CNF String
+                    string cnfString = "("+string(myOr->left->left->value)+" = "+string(myOr->left->right->value)+")";
+
+                    AndList pushAndList;
+                    pushAndList.left=parseTree->left;
+                    pushAndList.rightAnd=NULL;
+
+                    b[key] = pushAndList;
+                } 
+                else if (myOr->left->right->code == STRING  || 
+                        myOr->left->right->code == INT      ||
+                        myOr->left->right->code == DOUBLE) 
+                {
+                    continue;
+                } 
+                else 
+                {
+                    cerr << "You gave me some strange type for an operand that I do not recognize!!\n";
+                    //return -1;
+                }
+            } 
+			else if (myOr->left->left->code == STRING   || 
+                    myOr->left->left->code == INT       || 
+                    myOr->left->left->code == DOUBLE)   
+            {
+                continue;
+            }
+            // catch-all case
+            else 
+            {
+                cerr << "You gave me some strange type for an operand that I do not recognize!!\n";
+                //return -1;
+            }
+
+            // now we check to make sure that there was not a type mismatch
+            if (typeLeft != typeRight) {
+                cerr<< "ERROR! Type mismatch in Boolean  " 
+                << myOr->left->left->value << " and "
+                << myOr->left->right->value << " were found to not match.\n";
+                
+            }        
+        }
+    }
+    return b;
 }
 
 void QueryPlanner:: Print(){
