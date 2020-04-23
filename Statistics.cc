@@ -205,14 +205,14 @@ double Statistics::Estimate(struct AndList *tree, char **relationNames, int numT
         {
             tval[statsMap[relationNames[i]]->GetGroupName()]=statsMap[relationNames[i]]->GetNofTuples();
         }
-        ti=tval.begin();
-
+        
         et = 1000.0;
         while(tree!=NULL)
         {
             et*=EstimateTuples(tree->left,uniqueValueList);
             tree=tree->rightAnd;
         }
+        
         ti=tval.begin();
         for(;ti!=tval.end();ti++)
         {
