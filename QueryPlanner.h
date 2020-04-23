@@ -57,6 +57,7 @@ int getPid () {
 typedef map<string, Schema> SchemaMap;
 typedef map<string, string> AliaseMap;
 typedef map<string, AndList> booleanMap;
+typedef map<string,bool> Loopkup;
 
 class QueryPlanner{
 public:
@@ -80,7 +81,7 @@ public:
     booleanMap GetMapFromBoolean(AndList *boolean);
     //    void PrintFunction (FuncOperator *func);
     //    void PrintNameList(NameList *nameList);
-    //    void PrintParseTree(struct AndList *andPointer);
+        void PrintParseTree(struct AndList *andPointer);
     //    void PrintTablesAliases (TableList * tableList);
 
     
@@ -194,55 +195,55 @@ void QueryPlanner::PopulateStatistics () {
     s.AddAtt (lineitem, "l_comment", nlineitem);
 
 }
-//
-//void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
-//
-//    cout << "(";
-//
-//    while (andPointer) {
-//        struct OrList *orPointer = andPointer->left;
-//        while (orPointer) {
-//            struct ComparisonOp *comPointer = orPointer->left;
-//            if (comPointer!=NULL) {
-//                struct Operand *pOperand = comPointer->left;
-//                if(pOperand!=NULL) {
-//                    cout<<pOperand->value<<"";
-//                }
-//
-//                switch(comPointer->code) {
-//                    case LESS_THAN:
-//                        cout<<" < "; break;
-//                    case GREATER_THAN:
-//                        cout<<" > "; break;
-//                    case EQUALS:
-//                        cout<<" = "; break;
-//                    default:
-//                        cout << " unknown code " << comPointer->code;
-//                }
-//
-//                pOperand = comPointer->right;
-//
-//                if(pOperand!=NULL) {
-//                    cout<<pOperand->value<<"";
-//                }
-//            }
-//
-//            if(orPointer->rightOr) {
-//                cout<<" OR ";
-//            }
-//
-//            orPointer = orPointer->rightOr;
-//        }
-//
-//        if(andPointer->rightAnd) {
-//            cout<<") AND (";
-//        }
-//
-//        andPointer = andPointer->rightAnd;
-//    }
-//
-//    cout << ")" << endl;
-//}
+
+void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
+
+    cout << "(";
+
+    while (andPointer) {
+        struct OrList *orPointer = andPointer->left;
+        while (orPointer) {
+            struct ComparisonOp *comPointer = orPointer->left;
+            if (comPointer!=NULL) {
+                struct Operand *pOperand = comPointer->left;
+                if(pOperand!=NULL) {
+                    cout<<pOperand->value<<"";
+                }
+
+                switch(comPointer->code) {
+                    case LESS_THAN:
+                        cout<<" < "; break;
+                    case GREATER_THAN:
+                        cout<<" > "; break;
+                    case EQUALS:
+                        cout<<" = "; break;
+                    default:
+                        cout << " unknown code " << comPointer->code;
+                }
+
+                pOperand = comPointer->right;
+
+                if(pOperand!=NULL) {
+                    cout<<pOperand->value<<"";
+                }
+            }
+
+            if(orPointer->rightOr) {
+                cout<<" OR ";
+            }
+
+            orPointer = orPointer->rightOr;
+        }
+
+        if(andPointer->rightAnd) {
+            cout<<") AND (";
+        }
+
+        andPointer = andPointer->rightAnd;
+    }
+
+    cout << ")" << endl;
+}
 //void QueryPlanner::PrintTablesAliases (TableList * tableList)    {
 //
 //    while (tableList) {
@@ -298,8 +299,8 @@ void QueryPlanner::Compile(){
 void QueryPlanner::Optimise(){
     sort (tableNames.begin (), tableNames.end ());
 
-    double min_join_cost = (double)INT_MAX;
-    double curr_join_cost = 0;
+    int min_join_cost = INT_MAX;
+    int curr_join_cost = 0;
     booleanMap b = GetMapFromBoolean(boolean);
 
     do {
@@ -311,19 +312,26 @@ void QueryPlanner::Optimise(){
 
             Statistics temp (s);
             auto iter = tableNames.begin ();
-            buffer[0] = *iter;
+            int biter = 0;
+            buffer[biter] = *iter;
             iter++;
+            biter++;
 
             while (iter != tableNames.end ()) {
                 
-                buffer[1] = *iter;
-                string key = string(buffer[0])+","+string(buffer[1]);
+                buffer[biter] =  *iter ;
+                string key = "";
+                for ( int c = 0; c<=biter;c++){
+                    key += string(buffer[c]);
+                }
                 
+                cout<<key<<endl;
                 // check if this combination is in booleanMap
                 if (b.find(key) == b.end()) {
                     break;
                 }
                 
+                PrintParseTree(&b[key]);
                 curr_join_cost += temp.Estimate (&b[key], &buffer[0], 2);
                
             
@@ -336,6 +344,7 @@ void QueryPlanner::Optimise(){
                 }
 
                 iter++;
+                biter++;
             }
 
             if (curr_join_cost > 0 && curr_join_cost < min_join_cost) {
@@ -472,6 +481,9 @@ void QueryPlanner :: BuildExecutionTree(){
 booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
     booleanMap b;
     string delimiter = ".";
+    vector <string> fullkey;
+    AndList * head = NULL;
+    AndList * root = NULL;
 
     // now we go through and build the comparison structure
     for (int whichAnd = 0; 1; whichAnd++, parseTree = parseTree->rightAnd) {
@@ -504,9 +516,9 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
             if (myOr->left->left->code == NAME) {
                 if (myOr->left->right->code == NAME) 
                 {
-                    cout<<"( "<<myOr->left->left->value<<" ,"<< myOr->left->right->value<<")"<<endl;
+//                    cout<<"( "<<myOr->left->left->value<<" ,"<< myOr->left->right->value<<")"<<endl;
                     
-                    string key;
+                    string key1,key2;
 
                     // left table string
                     string lts = myOr->left->left->value;
@@ -516,7 +528,10 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
                     string rts = myOr->left->right->value;
                     string pushrts = rts.substr(0, rts.find(delimiter));
                     
-                    key=pushlts+","+pushrts;
+                    key1= pushlts+pushrts;
+                    key2 = pushrts+pushlts;
+                    fullkey.push_back(pushlts);
+                    fullkey.push_back(pushrts);
 
                     // CNF String
                     string cnfString = "("+string(myOr->left->left->value)+" = "+string(myOr->left->right->value)+")";
@@ -524,8 +539,25 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
                     AndList pushAndList;
                     pushAndList.left=parseTree->left;
                     pushAndList.rightAnd=NULL;
-
-                    b[key] = pushAndList;
+                    
+                    if(head==NULL){
+                        root = new AndList;
+                        root->left=parseTree->left;
+                        root->rightAnd=NULL;
+                        head = root;
+                    }
+                    else{
+                        root->rightAnd =  new AndList;
+                        root = root->rightAnd ;
+                        root->left=parseTree->left;
+                        root->rightAnd=NULL;
+                    }
+                    
+                    b[key1] = pushAndList;
+                    b[key2] = pushAndList;
+                    cout<<key1<<key2<<endl;
+                    PrintParseTree(&pushAndList);
+                    cout<<endl;
                 } 
                 else if (myOr->left->right->code == STRING  || 
                         myOr->left->right->code == INT      ||
@@ -561,6 +593,31 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
             }        
         }
     }
+    Loopkup h;
+    vector <string> keyf;
+    for (int k = 0; k<fullkey.size();k++){
+        cout<<fullkey[k]<<"  ";
+        if (h.find(fullkey[k]) == h.end()){
+            keyf.push_back(fullkey[k]);
+            h[fullkey[k]]=true;
+        }
+    }
+    cout<<endl;
+    for (int k = 0; k<keyf.size();k++){
+        cout<<keyf[k]<<" ";
+    }
+    cout<<endl;
+    sort(keyf.begin(), keyf.end());
+    do
+    {
+        string str="";
+        for (int k = 0; k<keyf.size();k++){
+            str+=keyf[k];
+        }
+        b[str] = *head;
+    }while(next_permutation(keyf.begin(),keyf.end()));
+  
+
     return b;
 }
 
