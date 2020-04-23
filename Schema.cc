@@ -225,7 +225,7 @@ void Schema :: Print () {
         }
         
         
-        cout <<" "<<myAtts[i].name << " - " <<  typeName << " " <<endl;
+        cout <<"        Att "<<myAtts[i].name << " : " <<  typeName << " " <<endl;
 
         
     }

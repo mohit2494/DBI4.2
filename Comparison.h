@@ -62,6 +62,9 @@ public:
 
 	// print to the screen
 	void Print ();
+    
+    void PrintWithSchema (Schema * s);
+
 
 	// get number of attributes
 	int getNumAtts();

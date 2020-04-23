@@ -190,6 +190,22 @@ void OrderMaker :: Print () {
 	}
 }
 
+void OrderMaker :: PrintWithSchema (Schema * s) {
+    Attribute * attr = s->GetAtts();
+    printf("        NumAtts =  %d\n", numAtts);
+    for (int i = 0; i < numAtts; i++)
+    {
+        cout<<"        "<<attr[whichAtts[i]].name<<" : ";
+        if (whichTypes[i] == Int)
+            printf("Int\n");
+        else if (whichTypes[i] == Double)
+            printf("Double\n");
+        else
+            printf("String\n");
+    }
+}
+
+
 int OrderMaker::getNumAtts() {
 	return numAtts;
 }
