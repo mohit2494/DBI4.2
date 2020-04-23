@@ -79,12 +79,10 @@ public:
     void BuildExecutionTree();
     void Print();
     booleanMap GetMapFromBoolean(AndList *boolean);
+    void PrintParseTree(struct AndList *andPointer);
+    //    void PrintTablesAliases (TableList * tableList);
     //    void PrintFunction (FuncOperator *func);
     //    void PrintNameList(NameList *nameList);
-        void PrintParseTree(struct AndList *andPointer);
-    //    void PrintTablesAliases (TableList * tableList);
-
-    
 };
  QueryPlanner::QueryPlanner(): buffer (2){
     PopulateSchemaMap ();
@@ -244,6 +242,7 @@ void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
 
     cout << ")" << endl;
 }
+
 //void QueryPlanner::PrintTablesAliases (TableList * tableList)    {
 //
 //    while (tableList) {
@@ -253,6 +252,7 @@ void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
 //    }
 //
 //}
+
 void QueryPlanner::PopulateAliasMapAndCopyStatistics(){
     while (tables) {
         s.CopyRel (tables->tableName, tables->aliasAs);
@@ -276,6 +276,7 @@ void QueryPlanner ::CopyNameList(NameList *nameList, vector<string> &names) {
         nameList = nameList->next;
     }
 }
+
 //
 //void QueryPlanner ::PrintFunction (FuncOperator *func) {
 //    if (func) {
@@ -297,6 +298,7 @@ void QueryPlanner::Compile(){
 }
 
 void QueryPlanner::Optimise(){
+    
     sort (tableNames.begin (), tableNames.end ());
 
     int min_join_cost = INT_MAX;
@@ -304,12 +306,7 @@ void QueryPlanner::Optimise(){
     booleanMap b = GetMapFromBoolean(boolean);
 
     do {
-            // code for printing tables
-            for (int i=0; i<tableNames.size(); i++) {
-                cout << tableNames.at(i)<<",";
-            }
-            cout << endl;
-
+            
             Statistics temp (s);
             auto iter = tableNames.begin ();
             int biter = 0;
@@ -325,18 +322,11 @@ void QueryPlanner::Optimise(){
                     key += string(buffer[c]);
                 }
                 
-                cout<<key<<endl;
-                // check if this combination is in booleanMap
                 if (b.find(key) == b.end()) {
                     break;
                 }
                 
-                PrintParseTree(&b[key]);
                 curr_join_cost += temp.Estimate (&b[key], &buffer[0], 2);
-               
-            
-                cout << "current join cost " << curr_join_cost << endl;
-
                 temp.Apply (&b[key], &buffer[0], 2);
 
                 if (curr_join_cost <= 0 || curr_join_cost > min_join_cost) {
@@ -348,10 +338,8 @@ void QueryPlanner::Optimise(){
             }
 
             if (curr_join_cost > 0 && curr_join_cost < min_join_cost) {
-
                 min_join_cost = curr_join_cost;
                 joinOrder = tableNames;
-
             }
             curr_join_cost = 0;
 
@@ -460,9 +448,7 @@ void QueryPlanner :: BuildExecutionTree(){
         }
         else if (attsToSelect)
         {
-
             root = new ProjectOpNode ();
-
             vector<int> attsToKeep;
             vector<string> atts;
             CopyNameList (attsToSelect, atts);
@@ -472,7 +458,6 @@ void QueryPlanner :: BuildExecutionTree(){
             ((ProjectOpNode *) root)->attsToKeep = &attsToKeep[0];
             ((ProjectOpNode *) root)->numIn = temp->schema.GetNumAtts ();
             ((ProjectOpNode *) root)->numOut = atts.size ();
-
             ((ProjectOpNode *) root)->from = temp;
 
         }
@@ -515,9 +500,7 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
             // we look it up in the schema
             if (myOr->left->left->code == NAME) {
                 if (myOr->left->right->code == NAME) 
-                {
-//                    cout<<"( "<<myOr->left->left->value<<" ,"<< myOr->left->right->value<<")"<<endl;
-                    
+                {   
                     string key1,key2;
 
                     // left table string
@@ -532,9 +515,6 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
                     key2 = pushrts+pushlts;
                     fullkey.push_back(pushlts);
                     fullkey.push_back(pushrts);
-
-                    // CNF String
-                    string cnfString = "("+string(myOr->left->left->value)+" = "+string(myOr->left->right->value)+")";
 
                     AndList pushAndList;
                     pushAndList.left=parseTree->left;
@@ -555,9 +535,7 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
                     
                     b[key1] = pushAndList;
                     b[key2] = pushAndList;
-                    cout<<key1<<key2<<endl;
-                    PrintParseTree(&pushAndList);
-                    cout<<endl;
+
                 } 
                 else if (myOr->left->right->code == STRING  || 
                         myOr->left->right->code == INT      ||
@@ -589,24 +567,18 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
                 cerr<< "ERROR! Type mismatch in Boolean  " 
                 << myOr->left->left->value << " and "
                 << myOr->left->right->value << " were found to not match.\n";
-                
             }        
         }
     }
     Loopkup h;
     vector <string> keyf;
     for (int k = 0; k<fullkey.size();k++){
-        cout<<fullkey[k]<<"  ";
         if (h.find(fullkey[k]) == h.end()){
             keyf.push_back(fullkey[k]);
             h[fullkey[k]]=true;
         }
     }
-    cout<<endl;
-    for (int k = 0; k<keyf.size();k++){
-        cout<<keyf[k]<<" ";
-    }
-    cout<<endl;
+    
     sort(keyf.begin(), keyf.end());
     do
     {
@@ -616,7 +588,6 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
         }
         b[str] = *head;
     }while(next_permutation(keyf.begin(),keyf.end()));
-  
 
     return b;
 }
