@@ -423,13 +423,7 @@ void QueryPlanner :: BuildExecutionTree(){
 
         if (groupingAtts) 
         {
-            if (distinctFunc) {
-                root = new DistinctOpNode ();
-                root->pid = getPid ();
-                root->schema = temp->schema;
-                ((DistinctOpNode *) root)->from = temp;
-                temp = root;
-            }
+            
 
             root = new GroupByOpNode ();
 
@@ -442,7 +436,11 @@ void QueryPlanner :: BuildExecutionTree(){
             CopyNameList (groupingAtts, atts);
             root->schema.GetSchemaForGroup (temp->schema, ((GroupByOpNode *) root)->compute.ReturnInt (),atts);
             ((GroupByOpNode *) root)->group.growFromParseTree (groupingAtts, &(temp->schema));
+            if (distinctFunc) {
+                ((GroupByOpNode *) root)->distinctFuncFlag = true;
+            }
             ((GroupByOpNode *) root)->from = temp;
+           
 
         } 
         else if (finalFunction) 
@@ -460,6 +458,7 @@ void QueryPlanner :: BuildExecutionTree(){
         }
         else if (attsToSelect)
         {
+            
             root = new ProjectOpNode ();
             vector<int> attsToKeep;
             vector<string> atts;
@@ -471,6 +470,15 @@ void QueryPlanner :: BuildExecutionTree(){
             ((ProjectOpNode *) root)->numIn = temp->schema.GetNumAtts ();
             ((ProjectOpNode *) root)->numOut = atts.size ();
             ((ProjectOpNode *) root)->from = temp;
+            temp = root;
+
+            if (distinctAtts) {
+                root = new DistinctOpNode ();
+                root->pid = getPid ();
+                root->schema = temp->schema;
+                ((DistinctOpNode *) root)->from = temp;
+                temp = root;
+            }
 
         }
 }

@@ -74,7 +74,7 @@ public:
         from->PrintNode ();
         
         cout << "-----------------------------------" << endl;
-        cout << " PRINT OPERATION" << endl;
+        cout << " PROJECT OPERATION" << endl;
         cout << " Input Pipe ID : " << from->pid << endl;
         cout << " Output Pipe ID " << pid << endl;
         cout << " Number Attrs Input : " << numIn << endl;
@@ -230,7 +230,7 @@ public:
 
     Function compute;
     OrderMaker group;
-    bool distinctFunc;
+    bool distinctFuncFlag;
     GroupByOpNode () : RelOpNode (GB) {}
     ~GroupByOpNode () {
 
@@ -249,6 +249,9 @@ public:
         schema.Print ();
         cout << " Function : " << endl;
         compute.Print (&from->schema);
+        if (distinctFuncFlag){
+            cout << " Distinct Function :  True" <<  endl;
+        }
         cout << " Grouping On : " << endl;
         group.PrintWithSchema(&from->schema);
         cout << "-----------------------------------" << endl;
