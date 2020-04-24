@@ -28,8 +28,8 @@ TEST(QueryTesting, CheckQueryAlias) {
 TEST(QueryTesting, TestJoinOptimization) {
     qp.Optimise();
     vector<char *> assertion = {"s","ps","p"};
-    for (int i=0; i<qp.joinOrder.size();i++) {
-        ASSERT_STREQ(assertion.at(i), qp.joinOrder.at(i));
+    for (int i=0; i<qp.TableOrderForJoin.size();i++) {
+        ASSERT_STREQ(assertion.at(i), qp.TableOrderForJoin.at(i));
     }
 }
 

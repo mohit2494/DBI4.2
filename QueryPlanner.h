@@ -39,33 +39,32 @@ char *orders = "orders";
 char *region = "region";
 char *lineitem = "lineitem";
 
-const int ncustomer = 150000;
-const int nlineitem = 6001215;
-const int nnation = 25;
-const int norders = 1500000;
-const int npart = 200000;
-const int npartsupp = 800000;
-const int nregion = 5;
-const int nsupplier = 10000;
+const int nrows_customer = 150000;
+const int nrows_lineitem = 6001215;
+const int nrows_nation = 25;
+const int nrows_orders = 1500000;
+const int nrows_part = 200000;
+const int nrows_partsupp = 800000;
+const int nrows_region = 5;
+const int nrows_supplier = 10000;
 
 static int pidBuffer = 0;
-int getPid () {
+int GetUniquePipeID () {
     return ++pidBuffer;
 }
 
-
-typedef map<string, Schema> SchemaMap;
-typedef map<string, string> AliaseMap;
+typedef map<string, Schema> SchMap;
+typedef map<string, string> TableAliasMap;
 typedef map<string, AndList> booleanMap;
 typedef map<string,bool> Loopkup;
 
 class QueryPlanner{
 public:
     vector<char *> tableNames;
-    vector<char *> joinOrder;
-    vector<char *> buffer;
-    AliaseMap aliasMap;
-    SchemaMap map;
+    vector<char *> TableOrderForJoin;
+    vector<char *> memoryBuffer;
+    TableAliasMap aliasMap;
+    SchMap map;
     Statistics s;
     RelOpNode *root;
     
@@ -79,11 +78,9 @@ public:
     void BuildExecutionTree();
     void Print();
     booleanMap GetMapFromBoolean(AndList *boolean);
-    void PrintParseTree(struct AndList *andPointer);
-
 };
 
-QueryPlanner::QueryPlanner(): buffer (2){
+QueryPlanner::QueryPlanner():memoryBuffer(2){
     PopulateSchemaMap ();
     PopulateStatistics ();
     yyparse ();
@@ -104,142 +101,92 @@ void QueryPlanner ::PopulateSchemaMap () {
 
 void QueryPlanner::PopulateStatistics () {
 
-    s.AddRel (region, nregion);
-    s.AddRel (nation, nnation);
-    s.AddRel (part, npart);
-    s.AddRel (supplier, nsupplier);
-    s.AddRel (partsupp, npartsupp);
-    s.AddRel (customer, ncustomer);
-    s.AddRel (orders, norders);
-    s.AddRel (lineitem, nlineitem);
+    s.AddRel (region, nrows_region);
+    s.AddRel (nation, nrows_nation);
+    s.AddRel (part, nrows_part);
+    s.AddRel (supplier, nrows_supplier);
+    s.AddRel (partsupp, nrows_partsupp);
+    s.AddRel (customer, nrows_customer);
+    s.AddRel (orders, nrows_orders);
+    s.AddRel (lineitem, nrows_lineitem);
 
     // region
-    s.AddAtt (region, "r_regionkey", nregion);
-    s.AddAtt (region, "r_name", nregion);
-    s.AddAtt (region, "r_comment", nregion);
+    s.AddAtt (region, "r_regionkey", nrows_region);
+    s.AddAtt (region, "r_name", nrows_region);
+    s.AddAtt (region, "r_comment", nrows_region);
 
     // nation
-    s.AddAtt (nation, "n_nationkey",  nnation);
-    s.AddAtt (nation, "n_name", nnation);
-    s.AddAtt (nation, "n_regionkey", nregion);
-    s.AddAtt (nation, "n_comment", nnation);
+    s.AddAtt (nation, "n_nationkey",  nrows_nation);
+    s.AddAtt (nation, "n_name", nrows_nation);
+    s.AddAtt (nation, "n_regionkey", nrows_region);
+    s.AddAtt (nation, "n_comment", nrows_nation);
 
     // part
-    s.AddAtt (part, "p_partkey", npart);
-    s.AddAtt (part, "p_name", npart);
-    s.AddAtt (part, "p_mfgr", npart);
-    s.AddAtt (part, "p_brand", npart);
-    s.AddAtt (part, "p_type", npart);
-    s.AddAtt (part, "p_size", npart);
-    s.AddAtt (part, "p_container", npart);
-    s.AddAtt (part, "p_retailprice", npart);
-    s.AddAtt (part, "p_comment", npart);
+    s.AddAtt (part, "p_partkey", nrows_part);
+    s.AddAtt (part, "p_name", nrows_part);
+    s.AddAtt (part, "p_mfgr", nrows_part);
+    s.AddAtt (part, "p_brand", nrows_part);
+    s.AddAtt (part, "p_type", nrows_part);
+    s.AddAtt (part, "p_size", nrows_part);
+    s.AddAtt (part, "p_container", nrows_part);
+    s.AddAtt (part, "p_retailprice", nrows_part);
+    s.AddAtt (part, "p_comment", nrows_part);
 
     // supplier
-    s.AddAtt (supplier, "s_suppkey", nsupplier);
-    s.AddAtt (supplier, "s_name", nsupplier);
-    s.AddAtt (supplier, "s_address", nsupplier);
-    s.AddAtt (supplier, "s_nationkey", nnation);
-    s.AddAtt (supplier, "s_phone", nsupplier);
-    s.AddAtt (supplier, "s_acctbal", nsupplier);
-    s.AddAtt (supplier, "s_comment", nsupplier);
+    s.AddAtt (supplier, "s_suppkey", nrows_supplier);
+    s.AddAtt (supplier, "s_name", nrows_supplier);
+    s.AddAtt (supplier, "s_address", nrows_supplier);
+    s.AddAtt (supplier, "s_nationkey", nrows_nation);
+    s.AddAtt (supplier, "s_phone", nrows_supplier);
+    s.AddAtt (supplier, "s_acctbal", nrows_supplier);
+    s.AddAtt (supplier, "s_comment", nrows_supplier);
 
     // partsupp
-    s.AddAtt (partsupp, "ps_partkey", npart);
-    s.AddAtt (partsupp, "ps_suppkey", nsupplier);
-    s.AddAtt (partsupp, "ps_availqty", npartsupp);
-    s.AddAtt (partsupp, "ps_supplycost", npartsupp);
-    s.AddAtt (partsupp, "ps_comment", npartsupp);
+    s.AddAtt (partsupp, "ps_partkey", nrows_part);
+    s.AddAtt (partsupp, "ps_suppkey", nrows_supplier);
+    s.AddAtt (partsupp, "ps_availqty", nrows_partsupp);
+    s.AddAtt (partsupp, "ps_supplycost", nrows_partsupp);
+    s.AddAtt (partsupp, "ps_comment", nrows_partsupp);
 
     // customer
-    s.AddAtt (customer, "c_custkey", ncustomer);
-    s.AddAtt (customer, "c_name", ncustomer);
-    s.AddAtt (customer, "c_address", ncustomer);
-    s.AddAtt (customer, "c_nationkey", nnation);
-    s.AddAtt (customer, "c_phone", ncustomer);
-    s.AddAtt (customer, "c_acctbal", ncustomer);
+    s.AddAtt (customer, "c_custkey", nrows_customer);
+    s.AddAtt (customer, "c_name", nrows_customer);
+    s.AddAtt (customer, "c_address", nrows_customer);
+    s.AddAtt (customer, "c_nationkey", nrows_nation);
+    s.AddAtt (customer, "c_phone", nrows_customer);
+    s.AddAtt (customer, "c_acctbal", nrows_customer);
     s.AddAtt (customer, "c_mktsegment", 5);
-    s.AddAtt (customer, "c_comment", ncustomer);
+    s.AddAtt (customer, "c_comment", nrows_customer);
 
     // orders
-    s.AddAtt (orders, "o_orderkey", norders);
-    s.AddAtt (orders, "o_custkey", ncustomer);
+    s.AddAtt (orders, "o_orderkey", nrows_orders);
+    s.AddAtt (orders, "o_custkey", nrows_customer);
     s.AddAtt (orders, "o_orderstatus", 3);
-    s.AddAtt (orders, "o_totalprice", norders);
-    s.AddAtt (orders, "o_orderdate", norders);
+    s.AddAtt (orders, "o_totalprice", nrows_orders);
+    s.AddAtt (orders, "o_orderdate", nrows_orders);
     s.AddAtt (orders, "o_orderpriority", 5);
-    s.AddAtt (orders, "o_clerk", norders);
+    s.AddAtt (orders, "o_clerk", nrows_orders);
     s.AddAtt (orders, "o_shippriority", 1);
-    s.AddAtt (orders, "o_comment", norders);
+    s.AddAtt (orders, "o_comment", nrows_orders);
 
     // lineitem
-    s.AddAtt (lineitem, "l_orderkey", norders);
-    s.AddAtt (lineitem, "l_partkey", npart);
-    s.AddAtt (lineitem, "l_suppkey", nsupplier);
-    s.AddAtt (lineitem, "l_linenumber", nlineitem);
-    s.AddAtt (lineitem, "l_quantity", nlineitem);
-    s.AddAtt (lineitem, "l_extendedprice", nlineitem);
-    s.AddAtt (lineitem, "l_discount", nlineitem);
-    s.AddAtt (lineitem, "l_tax", nlineitem);
+    s.AddAtt (lineitem, "l_orderkey", nrows_orders);
+    s.AddAtt (lineitem, "l_partkey", nrows_part);
+    s.AddAtt (lineitem, "l_suppkey", nrows_supplier);
+    s.AddAtt (lineitem, "l_linenumber", nrows_lineitem);
+    s.AddAtt (lineitem, "l_quantity", nrows_lineitem);
+    s.AddAtt (lineitem, "l_extendedprice", nrows_lineitem);
+    s.AddAtt (lineitem, "l_discount", nrows_lineitem);
+    s.AddAtt (lineitem, "l_tax", nrows_lineitem);
     s.AddAtt (lineitem, "l_returnflag", 3);
     s.AddAtt (lineitem, "l_linestatus", 2);
-    s.AddAtt (lineitem, "l_shipdate", nlineitem);
-    s.AddAtt (lineitem, "l_commitdate", nlineitem);
-    s.AddAtt (lineitem, "l_receiptdate", nlineitem);
-    s.AddAtt (lineitem, "l_shipinstruct", nlineitem);
+    s.AddAtt (lineitem, "l_shipdate", nrows_lineitem);
+    s.AddAtt (lineitem, "l_commitdate", nrows_lineitem);
+    s.AddAtt (lineitem, "l_receiptdate", nrows_lineitem);
+    s.AddAtt (lineitem, "l_shipinstruct", nrows_lineitem);
     s.AddAtt (lineitem, "l_shipmode", 7);
-    s.AddAtt (lineitem, "l_comment", nlineitem);
+    s.AddAtt (lineitem, "l_comment", nrows_lineitem);
 
-}
-
-void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
-
-    cout << "(";
-
-    while (andPointer) {
-        struct OrList *orPointer = andPointer->left;
-        while (orPointer) {
-            struct ComparisonOp *comPointer = orPointer->left;
-            if (comPointer!=NULL) {
-                
-                struct Operand *pOperand = comPointer->left;
-                if(pOperand!=NULL) {
-                    cout<<pOperand->value<<"";
-                }
-
-                switch(comPointer->code) {
-                    case LESS_THAN:
-                        cout<<" < "; break;
-                    case GREATER_THAN:
-                        cout<<" > "; break;
-                    case EQUALS:
-                        cout<<" = "; break;
-                    default:
-                        cout << " unknown code " << comPointer->code;
-                }
-
-                pOperand = comPointer->right;
-
-                if(pOperand!=NULL) {
-                    cout<<pOperand->value<<"";
-                }
-            }
-
-            if(orPointer->rightOr) {
-                cout<<" OR ";
-            }
-
-            orPointer = orPointer->rightOr;
-        }
-
-        if(andPointer->rightAnd) {
-            cout<<") AND (";
-        }
-
-        andPointer = andPointer->rightAnd;
-    }
-
-    cout << ")" << endl;
 }
 
 void QueryPlanner::PopulateAliasMapAndCopyStatistics(){
@@ -273,75 +220,74 @@ void QueryPlanner::Optimise(){
     booleanMap b = GetMapFromBoolean(boolean);
 
     do {
+        Statistics temp (s);
+        auto iter = tableNames.begin ();
+        int biter = 0;
+        memoryBuffer[biter] = *iter;
+        iter++;
+        biter++;
 
-            Statistics temp (s);
-            auto iter = tableNames.begin ();
-            int biter = 0;
-            buffer[biter] = *iter;
+        while (iter != tableNames.end ()) {
+            
+            memoryBuffer[biter] =  *iter ;
+            string key = "";
+            for ( int c = 0; c<=biter;c++){
+                key += string(memoryBuffer[c]);
+            }
+            
+            if (b.find(key) == b.end()) {
+                break;
+            }
+            
+            curr_join_cost += temp.Estimate (&b[key], &memoryBuffer[0], 2);
+            temp.Apply (&b[key], &memoryBuffer[0], 2);
+
+            if (curr_join_cost <= 0 || curr_join_cost > min_join_cost) {
+                break;
+            }
+
             iter++;
             biter++;
+        }
 
-            while (iter != tableNames.end ()) {
-                
-                buffer[biter] =  *iter ;
-                string key = "";
-                for ( int c = 0; c<=biter;c++){
-                    key += string(buffer[c]);
-                }
-                
-                if (b.find(key) == b.end()) {
-                    break;
-                }
-                
-                curr_join_cost += temp.Estimate (&b[key], &buffer[0], 2);
-                temp.Apply (&b[key], &buffer[0], 2);
-
-                if (curr_join_cost <= 0 || curr_join_cost > min_join_cost) {
-                    break;
-                }
-
-                iter++;
-                biter++;
-            }
-
-            if (curr_join_cost > 0 && curr_join_cost < min_join_cost) {
-                min_join_cost = curr_join_cost;
-                joinOrder = tableNames;
-            }
-            curr_join_cost = 0;
+        if (curr_join_cost > 0 && curr_join_cost < min_join_cost) {
+            min_join_cost = curr_join_cost;
+            TableOrderForJoin = tableNames;
+        }
+        curr_join_cost = 0;
 
     } while (next_permutation (tableNames.begin (), tableNames.end ()));
 
-    if (joinOrder.size()==0){
-        joinOrder = tableNames;
+    if (TableOrderForJoin.size()==0){
+        TableOrderForJoin = tableNames;
     }
 }
 
 void QueryPlanner :: BuildExecutionTree(){
 
-        auto iter = joinOrder.begin ();
+        auto iter = TableOrderForJoin.begin ();
         SelectFileOpNode *selectFileNode = new SelectFileOpNode ();
 
         char filepath[50];
         selectFileNode->opened = true;
-        selectFileNode->pid = getPid ();
+        selectFileNode->pid = GetUniquePipeID ();
         selectFileNode->schema = Schema (map[aliasMap[*iter]]);
         selectFileNode->schema.ResetSchema (*iter);
         selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
         iter++;
-        if (iter == joinOrder.end ()) {
+        if (iter == TableOrderForJoin.end ()) {
             root = selectFileNode;
         } 
         else {
 
             JoinOpNode *joinNode = new JoinOpNode ();
-            joinNode->pid = getPid ();
+            joinNode->pid = GetUniquePipeID ();
             joinNode->left = selectFileNode;
 
             selectFileNode = new SelectFileOpNode ();
             selectFileNode->opened = true;
-            selectFileNode->pid = getPid ();
+            selectFileNode->pid = GetUniquePipeID ();
             selectFileNode->schema = Schema (map[aliasMap[*iter]]);
             selectFileNode->schema.ResetSchema (*iter);
             selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
@@ -352,18 +298,18 @@ void QueryPlanner :: BuildExecutionTree(){
 
             iter++;
 
-            while (iter != joinOrder.end ()) {
+            while (iter != TableOrderForJoin.end ()) {
 
                 JoinOpNode *p = joinNode;
                 selectFileNode = new SelectFileOpNode ();
                 selectFileNode->opened = true;
-                selectFileNode->pid = getPid ();
+                selectFileNode->pid = GetUniquePipeID ();
                 selectFileNode->schema = Schema (map[aliasMap[*iter]]);
                 selectFileNode->schema.ResetSchema (*iter);
                 selectFileNode->cnf.GrowFromParseTree (boolean, &(selectFileNode->schema), selectFileNode->literal);
 
                 joinNode = new JoinOpNode ();
-                joinNode->pid = getPid ();
+                joinNode->pid = GetUniquePipeID ();
                 joinNode->left = p;
                 joinNode->right = selectFileNode;
                 joinNode->schema.GetSchemaForJoin (joinNode->left->schema, joinNode->right->schema);
@@ -378,14 +324,10 @@ void QueryPlanner :: BuildExecutionTree(){
 
         if (groupingAtts) 
         {
-            
-
             root = new GroupByOpNode ();
-
             vector<string> groupAtts;
             CopyNameList (groupingAtts, groupAtts);
-
-            root->pid = getPid ();
+            root->pid = GetUniquePipeID ();
             ((GroupByOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
             vector<string> atts;
             CopyNameList (groupingAtts, atts);
@@ -395,28 +337,24 @@ void QueryPlanner :: BuildExecutionTree(){
                 ((GroupByOpNode *) root)->distinctFuncFlag = true;
             }
             ((GroupByOpNode *) root)->from = temp;
-           
 
         } 
         else if (finalFunction) 
         {
             root = new SumOpNode ();
-            root->pid = getPid ();
+            root->pid = GetUniquePipeID ();
             ((SumOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
             Attribute atts[2][1] = {{{"sum", Int}}, {{"sum", Double}}};
             root->schema = Schema (NULL, 1, ((SumOpNode *) root)->compute.ReturnInt () ? atts[0] : atts[1]);
             ((SumOpNode *) root)->from = temp;
-
         }
         else if (attsToSelect)
         {
-            
             root = new ProjectOpNode ();
             vector<int> attsToKeep;
             vector<string> atts;
             CopyNameList (attsToSelect, atts);
-
-            root->pid = getPid ();
+            root->pid = GetUniquePipeID ();
             root->schema.GetSchemaForProject (temp->schema, atts, attsToKeep);
             ((ProjectOpNode *) root)->attsToKeep = &attsToKeep[0];
             ((ProjectOpNode *) root)->numIn = temp->schema.GetNumAtts ();
@@ -426,7 +364,7 @@ void QueryPlanner :: BuildExecutionTree(){
 
             if (distinctAtts) {
                 root = new DistinctOpNode ();
-                root->pid = getPid ();
+                root->pid = GetUniquePipeID ();
                 root->schema = temp->schema;
                 ((DistinctOpNode *) root)->from = temp;
                 temp = root;
@@ -541,7 +479,7 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
             }        
         }
     }
-    
+        
     if (fullkey.size()>0){
         Loopkup h;
         vector <string> keyf;
