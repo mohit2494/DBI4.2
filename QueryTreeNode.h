@@ -121,7 +121,6 @@ public:
 
         cout << "-----------------------------------" << endl;
         cout << " SELECT FILE OPERATION" << endl;
-        cout << " Select File Operation" << endl;
         cout << " Output Pipe ID " << pid << endl;
         cout << " Output Schema:" << endl;
         schema.Print ();

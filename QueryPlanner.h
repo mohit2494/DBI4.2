@@ -22,13 +22,13 @@ extern "C" {
 
 using namespace std;
 
-extern struct FuncOperator *finalFunction; // the aggregate function (NULL if no agg)
-extern struct TableList *tables; // the list of tables and aliases in the query
-extern struct AndList *boolean; // the predicate in the WHERE clause
-extern struct NameList *groupingAtts; // grouping atts (NULL if no grouping)
-extern struct NameList *attsToSelect; // the set of attributes in the SELECT (NULL if no such atts)
-extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
-extern int distinctFunc;  // 1 if there is a DISTINCT in an aggregate query
+extern struct FuncOperator *finalFunction;  // the aggregate function (NULL if no agg)
+extern struct TableList *tables;            // the list of tables and aliases in the query
+extern struct AndList *boolean;             // the predicate in the WHERE clause
+extern struct NameList *groupingAtts;       // grouping atts (NULL if no grouping)
+extern struct NameList *attsToSelect;       // the set of attributes in the SELECT (NULL if no such atts)
+extern int distinctAtts;                    // 1 if there is a DISTINCT in a non-aggregate query
+extern int distinctFunc;                    // 1 if there is a DISTINCT in an aggregate query
 
 char *supplier = "supplier";
 char *partsupp = "partsupp";
@@ -80,14 +80,12 @@ public:
     void Print();
     booleanMap GetMapFromBoolean(AndList *boolean);
     void PrintParseTree(struct AndList *andPointer);
-    //    void PrintTablesAliases (TableList * tableList);
-    //    void PrintFunction (FuncOperator *func);
-    //    void PrintNameList(NameList *nameList);
+
 };
- QueryPlanner::QueryPlanner(): buffer (2){
+
+QueryPlanner::QueryPlanner(): buffer (2){
     PopulateSchemaMap ();
     PopulateStatistics ();
-//    cout << "SQL>>" << endl;;
     yyparse ();
 };
 
@@ -203,6 +201,7 @@ void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
         while (orPointer) {
             struct ComparisonOp *comPointer = orPointer->left;
             if (comPointer!=NULL) {
+                
                 struct Operand *pOperand = comPointer->left;
                 if(pOperand!=NULL) {
                     cout<<pOperand->value<<"";
@@ -243,16 +242,6 @@ void QueryPlanner ::PrintParseTree (struct AndList *andPointer) {
     cout << ")" << endl;
 }
 
-//void QueryPlanner::PrintTablesAliases (TableList * tableList)    {
-//
-//    while (tableList) {
-//        cout << "Table " << tableList->tableName;
-//        cout <<    " is aliased to " << tableList->aliasAs << endl;
-//        tableList = tableList->next;
-//    }
-//
-//}
-
 void QueryPlanner::PopulateAliasMapAndCopyStatistics(){
     while (tables) {
         s.CopyRel (tables->tableName, tables->aliasAs);
@@ -262,34 +251,12 @@ void QueryPlanner::PopulateAliasMapAndCopyStatistics(){
     }
 }
 
-//void QueryPlanner ::PrintNameList(NameList *nameList) {
-//    while (nameList) {
-//        cout << nameList->name << endl;
-//        nameList = nameList->next;
-//    }
-//
-//}
-
 void QueryPlanner ::CopyNameList(NameList *nameList, vector<string> &names) {
     while (nameList) {
         names.push_back (string (nameList->name));
         nameList = nameList->next;
     }
 }
-
-//
-//void QueryPlanner ::PrintFunction (FuncOperator *func) {
-//    if (func) {
-//        cout << "(";
-//        PrintFunction (func->leftOperator);
-//        cout << func->leftOperand->value << " ";
-//        if (func->code) {
-//            cout << " " << func->code << " ";
-//        }
-//        PrintFunction (func->right);
-//        cout << ")";
-//    }
-//}
 
 void QueryPlanner::Compile(){
     PopulateAliasMapAndCopyStatistics();
@@ -306,11 +273,6 @@ void QueryPlanner::Optimise(){
     booleanMap b = GetMapFromBoolean(boolean);
 
     do {
-//            // code for printing tables
-//            for (int i=0; i<tableNames.size(); i++) {
-//                cout << tableNames.at(i)<<",";
-//            }
-//            cout << endl;
 
             Statistics temp (s);
             auto iter = tableNames.begin ();
@@ -327,18 +289,11 @@ void QueryPlanner::Optimise(){
                     key += string(buffer[c]);
                 }
                 
-//                cout<<key<<endl;
-                // check if this combination is in booleanMap
                 if (b.find(key) == b.end()) {
                     break;
                 }
                 
-//                PrintParseTree(&b[key]);
                 curr_join_cost += temp.Estimate (&b[key], &buffer[0], 2);
-               
-            
-//                cout << "current join cost " << curr_join_cost << endl;
-
                 temp.Apply (&b[key], &buffer[0], 2);
 
                 if (curr_join_cost <= 0 || curr_join_cost > min_join_cost) {
@@ -445,16 +400,13 @@ void QueryPlanner :: BuildExecutionTree(){
         } 
         else if (finalFunction) 
         {
-
             root = new SumOpNode ();
-
             root->pid = getPid ();
             ((SumOpNode *) root)->compute.GrowFromParseTree (finalFunction, temp->schema);
-
             Attribute atts[2][1] = {{{"sum", Int}}, {{"sum", Double}}};
             root->schema = Schema (NULL, 1, ((SumOpNode *) root)->compute.ReturnInt () ? atts[0] : atts[1]);
-
             ((SumOpNode *) root)->from = temp;
+
         }
         else if (attsToSelect)
         {
@@ -479,7 +431,6 @@ void QueryPlanner :: BuildExecutionTree(){
                 ((DistinctOpNode *) root)->from = temp;
                 temp = root;
             }
-
         }
 }
 
@@ -555,9 +506,7 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
                     
                     b[key1] = pushAndList;
                     b[key2] = pushAndList;
-//                    cout<<key1<<key2<<endl;
-//                    PrintParseTree(&pushAndList);
-//                    cout<<endl;
+
                 } 
                 else if (myOr->left->right->code == STRING  || 
                         myOr->left->right->code == INT      ||
@@ -592,39 +541,31 @@ booleanMap QueryPlanner::GetMapFromBoolean(AndList *parseTree) {
             }        
         }
     }
+    
     if (fullkey.size()>0){
         Loopkup h;
-          vector <string> keyf;
-          for (int k = 0; k<fullkey.size();k++){
-//              cout<<fullkey[k]<<"  ";
-              if (h.find(fullkey[k]) == h.end()){
-                  keyf.push_back(fullkey[k]);
-                  h[fullkey[k]]=true;
-              }
-          }
-          
-//          cout<<endl;
-//          for (int k = 0; k<keyf.size();k++){
-//              cout<<keyf[k]<<" ";
-//          }
-//          cout<<endl;
-          sort(keyf.begin(), keyf.end());
-          do
-          {
-              string str="";
-              for (int k = 0; k<keyf.size();k++){
-                  str+=keyf[k];
-              }
-              b[str] = *head;
-          }while(next_permutation(keyf.begin(),keyf.end()));
-        
+        vector <string> keyf;
+        for (int k = 0; k<fullkey.size();k++){
+            if (h.find(fullkey[k]) == h.end()){
+                keyf.push_back(fullkey[k]);
+                h[fullkey[k]]=true;
+            }
+        }
+
+        sort(keyf.begin(), keyf.end());
+        do
+        {
+            string str="";
+            for (int k = 0; k<keyf.size();k++){
+                str+=keyf[k];
+            }
+            b[str] = *head;
+        }while(next_permutation(keyf.begin(),keyf.end()));
     }
     return b;
 }
 
 void QueryPlanner:: Print(){
-//    cout << "Parse Tree : " << endl;
     root->PrintNode();
 }
-
 #endif
